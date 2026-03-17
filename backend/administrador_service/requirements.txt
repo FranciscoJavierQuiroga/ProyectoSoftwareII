@@ -1,0 +1,4 @@
+Flask==2.2.5
+Flask-Cors==3.0.10
+python-keycloak==0.26.1
+zappa==0.54.1
