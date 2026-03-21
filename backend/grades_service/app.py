@@ -254,3 +254,176 @@ def get_student_grades(student_id):
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+    
+@app.route('/grades', methods=['POST'])
+def add_grade():
+    """Agregar una calificación a una matrícula"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No se proporcionaron datos'}), 400
+        
+        # Validar campos requeridos
+        required_fields = ['enrollment_id', 'tipo', 'nota', 'peso']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({
+                    'success': False,
+                    'error': f'El campo {field} es requerido'
+                }), 400
+        
+        # Validar nota
+        nota = float(data['nota'])
+        nota_maxima = float(data.get('nota_maxima', 5.0))
+        peso = float(data['peso'])
+        
+        if nota < 0 or nota > nota_maxima:
+            return jsonify({
+                'success': False,
+                'error': f'La nota debe estar entre 0 y {nota_maxima}'
+            }), 400
+        
+        if peso < 0 or peso > 1:
+            return jsonify({
+                'success': False,
+                'error': 'El peso debe estar entre 0 y 1'
+            }), 400
+        
+        matriculas = get_matriculas_collection()
+        
+        # Convertir enrollment_id a ObjectId
+        enrollment_obj_id = string_to_objectid(data['enrollment_id'])
+        if not enrollment_obj_id:
+            return jsonify({'success': False, 'error': 'ID de matrícula inválido'}), 400
+        
+        # Verificar que la matrícula existe
+        matricula = matriculas.find_one({'_id': enrollment_obj_id})
+        if not matricula:
+            return jsonify({'success': False, 'error': 'Matrícula no encontrada'}), 404
+        
+        # Crear objeto de calificación
+        nueva_calificacion = {
+            'tipo': data['tipo'],
+            'nota': nota,
+            'nota_maxima': nota_maxima,
+            'peso': peso,
+            'fecha_eval': datetime.utcnow(),
+            'comentarios': data.get('comentarios', '')
+        }
+        
+        # Agregar calificación
+        resultado = matriculas.update_one(
+            {'_id': enrollment_obj_id},
+            {'$push': {'calificaciones': nueva_calificacion}}
+        )
+        
+        # Registrar auditoría
+        registrar_auditoria(
+            id_usuario=None,
+            accion='agregar_calificacion',
+            entidad_afectada='matriculas',
+            id_entidad=data['enrollment_id'],
+            detalles=f"Calificación agregada: {data['tipo']} - Nota: {nota}"
+        )
+        
+        # Obtener matrícula actualizada
+        matricula_actualizada = matriculas.find_one({'_id': enrollment_obj_id})
+        
+        return jsonify({
+            'success': True,
+            'message': 'Calificación agregada exitosamente',
+            'enrollment': serialize_doc(matricula_actualizada)
+        }), 201
+        
+    except ValueError as ve:
+        return jsonify({'success': False, 'error': 'Valores numéricos inválidos'}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/grades/<enrollment_id>', methods=['PUT'])
+def update_grade(enrollment_id):
+    """Actualizar una calificación específica"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No se proporcionaron datos'}), 400
+        
+        # Validar grade_index
+        if 'grade_index' not in data:
+            return jsonify({'success': False, 'error': 'Se requiere grade_index'}), 400
+        
+        grade_index = int(data['grade_index'])
+        
+        matriculas = get_matriculas_collection()
+        
+        # Convertir ID a ObjectId
+        enrollment_obj_id = string_to_objectid(enrollment_id)
+        if not enrollment_obj_id:
+            return jsonify({'success': False, 'error': 'ID de matrícula inválido'}), 400
+        
+        # Verificar que la matrícula existe
+        matricula = matriculas.find_one({'_id': enrollment_obj_id})
+        if not matricula:
+            return jsonify({'success': False, 'error': 'Matrícula no encontrada'}), 404
+        
+        # Verificar que el índice existe
+        calificaciones = matricula.get('calificaciones', [])
+        if grade_index < 0 or grade_index >= len(calificaciones):
+            return jsonify({'success': False, 'error': 'Índice de calificación inválido'}), 400
+        
+        # Construir actualización
+        update_fields = {}
+        
+        if 'nota' in data:
+            nota = float(data['nota'])
+            nota_maxima = calificaciones[grade_index].get('nota_maxima', 5.0)
+            if nota < 0 or nota > nota_maxima:
+                return jsonify({
+                    'success': False,
+                    'error': f'La nota debe estar entre 0 y {nota_maxima}'
+                }), 400
+            update_fields[f'calificaciones.{grade_index}.nota'] = nota
+        
+        if 'peso' in data:
+            peso = float(data['peso'])
+            if peso < 0 or peso > 1:
+                return jsonify({'success': False, 'error': 'El peso debe estar entre 0 y 1'}), 400
+            update_fields[f'calificaciones.{grade_index}.peso'] = peso
+        
+        if 'comentarios' in data:
+            update_fields[f'calificaciones.{grade_index}.comentarios'] = data['comentarios']
+        
+        if 'tipo' in data:
+            update_fields[f'calificaciones.{grade_index}.tipo'] = data['tipo']
+        
+        # Actualizar
+        if update_fields:
+            resultado = matriculas.update_one(
+                {'_id': enrollment_obj_id},
+                {'$set': update_fields}
+            )
+            
+            # Registrar auditoría
+            registrar_auditoria(
+                id_usuario=None,
+                accion='actualizar_calificacion',
+                entidad_afectada='matriculas',
+                id_entidad=enrollment_id,
+                detalles=f"Calificación actualizada en índice {grade_index}"
+            )
+        
+        # Obtener matrícula actualizada
+        matricula_actualizada = matriculas.find_one({'_id': enrollment_obj_id})
+        
+        return jsonify({
+            'success': True,
+            'message': 'Calificación actualizada exitosamente',
+            'enrollment': serialize_doc(matricula_actualizada)
+        }), 200
+        
+    except ValueError:
+        return jsonify({'success': False, 'error': 'Valores numéricos inválidos'}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
