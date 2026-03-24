@@ -379,3 +379,202 @@ def update_group(group_id):
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/groups/<group_id>', methods=['DELETE'])
+def delete_group(group_id):
+    """Eliminar (desactivar) un grupo"""
+    try:
+        cursos = get_cursos_collection()
+        
+        # Convertir ID a ObjectId
+        obj_id = string_to_objectid(group_id)
+        if not obj_id:
+            return jsonify({'success': False, 'error': 'ID inválido'}), 400
+        
+        # Verificar que el grupo existe
+        grupo = cursos.find_one({'_id': obj_id})
+        if not grupo:
+            return jsonify({'success': False, 'error': 'Grupo no encontrado'}), 404
+        
+        # Desactivar
+        resultado = cursos.update_one(
+            {'_id': obj_id},
+            {'$set': {'activo': False}}
+        )
+        
+        # Registrar en auditoría
+        registrar_auditoria(
+            id_usuario=None,
+            accion='desactivar_curso',
+            entidad_afectada='cursos',
+            id_entidad=group_id,
+            detalles=f"Curso desactivado: {grupo['nombre_curso']}"
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Grupo desactivado exitosamente'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/groups/<group_id>/students', methods=['GET'])
+def get_group_students(group_id):
+    """Obtener estudiantes de un grupo"""
+    try:
+        matriculas = get_matriculas_collection()
+        
+        # Convertir ID a ObjectId
+        obj_id = string_to_objectid(group_id)
+        if not obj_id:
+            return jsonify({'success': False, 'error': 'ID inválido'}), 400
+        
+        # Buscar matrículas del curso
+        estudiantes_matriculas = list(matriculas.find({
+            'id_curso': obj_id,
+            'estado': 'activo'
+        }))
+        
+        return jsonify({
+            'success': True,
+            'group_id': group_id,
+            'student_ids': [str(m['id_estudiante']) for m in estudiantes_matriculas],
+            'students': serialize_doc(estudiantes_matriculas),
+            'students_count': len(estudiantes_matriculas)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/groups/<group_id>/students/<student_id>', methods=['POST'])
+def add_student_to_group(group_id, student_id):
+    """Agregar un estudiante a un grupo (crear matrícula)"""
+    try:
+        cursos = get_cursos_collection()
+        usuarios = get_usuarios_collection()
+        matriculas = get_matriculas_collection()
+        
+        # Convertir IDs a ObjectId
+        curso_id = string_to_objectid(group_id)
+        estudiante_id = string_to_objectid(student_id)
+        
+        if not curso_id or not estudiante_id:
+            return jsonify({'success': False, 'error': 'IDs inválidos'}), 400
+        
+        # Verificar que el curso existe
+        curso = cursos.find_one({'_id': curso_id, 'activo': True})
+        if not curso:
+            return jsonify({'success': False, 'error': 'Curso no encontrado o inactivo'}), 404
+        
+        # Verificar capacidad
+        if 'capacidad_max' in curso:
+            estudiantes_actuales = matriculas.count_documents({
+                'id_curso': curso_id,
+                'estado': 'activo'
+            })
+            if estudiantes_actuales >= curso['capacidad_max']:
+                return jsonify({'success': False, 'error': 'El grupo está lleno'}), 400
+        
+        # Verificar que el estudiante existe
+        estudiante = usuarios.find_one({'_id': estudiante_id, 'rol': 'estudiante', 'activo': True})
+        if not estudiante:
+            return jsonify({'success': False, 'error': 'Estudiante no encontrado o inactivo'}), 404
+        
+        # Verificar si ya está matriculado
+        matricula_existente = matriculas.find_one({
+            'id_estudiante': estudiante_id,
+            'id_curso': curso_id
+        })
+        
+        if matricula_existente:
+            return jsonify({'success': False, 'error': 'El estudiante ya está matriculado en este curso'}), 400
+        
+        # Crear matrícula
+        nueva_matricula = {
+            'id_estudiante': estudiante_id,
+            'id_curso': curso_id,
+            'fecha_matricula': Timestamp(int(datetime.utcnow().timestamp()), 0),
+            'estado': 'activo',
+            'calificaciones': [],
+            'estudiante_info': {
+                'nombres': estudiante.get('nombres'),
+                'apellidos': estudiante.get('apellidos'),
+                'codigo_est': estudiante.get('codigo_est')
+            },
+            'curso_info': {
+                'nombre_curso': curso.get('nombre_curso'),
+                'codigo_curso': curso.get('codigo_curso'),
+                'grado': curso.get('grado'),
+                'periodo': curso.get('periodo')
+            }
+        }
+        
+        # Insertar matrícula
+        resultado = matriculas.insert_one(nueva_matricula)
+        
+        # Registrar en auditoría
+        registrar_auditoria(
+            id_usuario=None,
+            accion='crear_matricula',
+            entidad_afectada='matriculas',
+            id_entidad=str(resultado.inserted_id),
+            detalles=f"Estudiante {estudiante['nombres']} matriculado en {curso['nombre_curso']}"
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Estudiante agregado al grupo exitosamente',
+            'group_id': group_id,
+            'student_id': student_id
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/groups/<group_id>/students/<student_id>', methods=['DELETE'])
+def remove_student_from_group(group_id, student_id):
+    """Remover un estudiante de un grupo"""
+    try:
+        matriculas = get_matriculas_collection()
+        
+        # Convertir IDs a ObjectId
+        curso_id = string_to_objectid(group_id)
+        estudiante_id = string_to_objectid(student_id)
+        
+        if not curso_id or not estudiante_id:
+            return jsonify({'success': False, 'error': 'IDs inválidos'}), 400
+        
+        # Buscar matrícula
+        matricula = matriculas.find_one({
+            'id_estudiante': estudiante_id,
+            'id_curso': curso_id
+        })
+        
+        if not matricula:
+            return jsonify({'success': False, 'error': 'Matrícula no encontrada'}), 404
+        
+        # Cambiar estado a retirado
+        resultado = matriculas.update_one(
+            {'_id': matricula['_id']},
+            {'$set': {'estado': 'retirado'}}
+        )
+        
+        # Registrar en auditoría
+        registrar_auditoria(
+            id_usuario=None,
+            accion='retirar_matricula',
+            entidad_afectada='matriculas',
+            id_entidad=str(matricula['_id']),
+            detalles=f"Estudiante retirado del curso"
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Estudiante removido del grupo exitosamente',
+            'group_id': group_id,
+            'student_id': student_id
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
