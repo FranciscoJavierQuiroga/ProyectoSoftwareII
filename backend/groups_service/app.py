@@ -578,3 +578,15 @@ def remove_student_from_group(group_id, student_id):
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+    
+    # Manejo de errores
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'success': False, 'error': 'Endpoint no encontrado'}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({'success': False, 'error': 'Error interno del servidor'}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5004)

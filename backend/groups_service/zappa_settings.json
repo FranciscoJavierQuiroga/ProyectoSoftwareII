@@ -1,0 +1,38 @@
+{
+    "dev": {
+        "app_function": "app.app",
+        "aws_region": "us-east-1",
+        "profile_name": "default",
+        "project_name": "groups-service",
+        "runtime": "python3.9",
+        "s3_bucket": "zappa-groups-service-deployments",
+        "manage_roles": true,
+        "environment_variables": {
+            "ENVIRONMENT": "development",
+            "SERVICE_NAME": "groups"
+        },
+        "cors": true,
+        "api_key_required": false,
+        "memory_size": 256,
+        "timeout_seconds": 30,
+        "keep_warm": false
+    },
+    "production": {
+        "app_function": "app.app",
+        "aws_region": "us-east-1",
+        "profile_name": "default",
+        "project_name": "groups-service",
+        "runtime": "python3.9",
+        "s3_bucket": "zappa-groups-service-deployments-prod",
+        "manage_roles": true,
+        "environment_variables": {
+            "ENVIRONMENT": "production",
+            "SERVICE_NAME": "groups"
+        },
+        "cors": true,
+        "api_key_required": false,
+        "memory_size": 512,
+        "timeout_seconds": 30,
+        "keep_warm": true
+    }
+}
