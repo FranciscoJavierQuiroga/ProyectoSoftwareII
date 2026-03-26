@@ -427,3 +427,203 @@ def update_grade(enrollment_id):
         return jsonify({'success': False, 'error': 'Valores numéricos inválidos'}), 400
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+    
+@app.route('/grades/<enrollment_id>/<int:grade_index>', methods=['DELETE'])
+def delete_grade(enrollment_id, grade_index):
+    """Eliminar una calificación específica"""
+    try:
+        matriculas = get_matriculas_collection()
+        
+        # Convertir ID a ObjectId
+        enrollment_obj_id = string_to_objectid(enrollment_id)
+        if not enrollment_obj_id:
+            return jsonify({'success': False, 'error': 'ID de matrícula inválido'}), 400
+        
+        # Verificar que la matrícula existe
+        matricula = matriculas.find_one({'_id': enrollment_obj_id})
+        if not matricula:
+            return jsonify({'success': False, 'error': 'Matrícula no encontrada'}), 404
+        
+        # Verificar que el índice existe
+        calificaciones = matricula.get('calificaciones', [])
+        if grade_index < 0 or grade_index >= len(calificaciones):
+            return jsonify({'success': False, 'error': 'Índice de calificación inválido'}), 400
+        
+        # Eliminar calificación
+        calificaciones.pop(grade_index)
+        
+        resultado = matriculas.update_one(
+            {'_id': enrollment_obj_id},
+            {'$set': {'calificaciones': calificaciones}}
+        )
+        
+        # Registrar auditoría
+        registrar_auditoria(
+            id_usuario=None,
+            accion='eliminar_calificacion',
+            entidad_afectada='matriculas',
+            id_entidad=enrollment_id,
+            detalles=f"Calificación eliminada en índice {grade_index}"
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Calificación eliminada exitosamente'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/grades/average/<enrollment_id>', methods=['GET'])
+def calculate_average(enrollment_id):
+    """Calcular el promedio de una matrícula"""
+    try:
+        matriculas = get_matriculas_collection()
+        
+        # Convertir ID a ObjectId
+        enrollment_obj_id = string_to_objectid(enrollment_id)
+        if not enrollment_obj_id:
+            return jsonify({'success': False, 'error': 'ID de matrícula inválido'}), 400
+        
+        # Buscar matrícula
+        matricula = matriculas.find_one({'_id': enrollment_obj_id})
+        if not matricula:
+            return jsonify({'success': False, 'error': 'Matrícula no encontrada'}), 404
+        
+        calificaciones = matricula.get('calificaciones', [])
+        
+        if not calificaciones:
+            return jsonify({
+                'success': True,
+                'enrollment_id': enrollment_id,
+                'average': 0,
+                'total_grades': 0
+            }), 200
+        
+        # Calcular promedio ponderado
+        total = sum(c.get('nota', 0) * c.get('peso', 0) for c in calificaciones)
+        total_peso = sum(c.get('peso', 0) for c in calificaciones)
+        
+        promedio = round(total / total_peso, 2) if total_peso > 0 else 0
+        
+        # Determinar estado
+        estado = 'aprobado' if promedio >= 3.0 else 'reprobado'
+        
+        return jsonify({
+            'success': True,
+            'enrollment_id': enrollment_id,
+            'average': promedio,
+            'total_grades': len(calificaciones),
+            'status': estado,
+            'grades': serialize_doc(calificaciones)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/grades/bulk', methods=['POST'])
+def bulk_upload_grades():
+    """Carga masiva de calificaciones para un curso"""
+    try:
+        data = request.get_json()
+        
+        if not data or 'grades' not in data:
+            return jsonify({'success': False, 'error': 'No se proporcionaron calificaciones'}), 400
+        
+        course_id = data.get('course_id')
+        periodo = data.get('periodo')
+        tipo_evaluacion = data.get('tipo', 'Evaluación')
+        peso = float(data.get('peso', 0.33))
+        
+        if not course_id:
+            return jsonify({'success': False, 'error': 'Se requiere course_id'}), 400
+        
+        matriculas = get_matriculas_collection()
+        curso_obj_id = string_to_objectid(course_id)
+        
+        successful = 0
+        failed = 0
+        errors = []
+        
+        # Procesar cada calificación
+        for grade_entry in data['grades']:
+            try:
+                student_id = grade_entry.get('student_id')
+                nota = float(grade_entry.get('nota', 0))
+                comentarios = grade_entry.get('comentarios', '')
+                
+                if not student_id:
+                    failed += 1
+                    errors.append({'error': 'student_id requerido', 'entry': grade_entry})
+                    continue
+                
+                student_obj_id = string_to_objectid(student_id)
+                
+                # Buscar matrícula
+                query = {
+                    'id_curso': curso_obj_id,
+                    'id_estudiante': student_obj_id
+                }
+                
+                if periodo:
+                    query['curso_info.periodo'] = periodo
+                
+                matricula = matriculas.find_one(query)
+                
+                if not matricula:
+                    failed += 1
+                    errors.append({'error': 'Matrícula no encontrada', 'student_id': student_id})
+                    continue
+                
+                # Agregar calificación
+                nueva_calificacion = {
+                    'tipo': tipo_evaluacion,
+                    'nota': nota,
+                    'nota_maxima': 5.0,
+                    'peso': peso,
+                    'fecha_eval': datetime.utcnow(),
+                    'comentarios': comentarios
+                }
+                
+                matriculas.update_one(
+                    {'_id': matricula['_id']},
+                    {'$push': {'calificaciones': nueva_calificacion}}
+                )
+                
+                successful += 1
+                
+            except Exception as e:
+                failed += 1
+                errors.append({'error': str(e), 'entry': grade_entry})
+        
+        # Registrar auditoría
+        registrar_auditoria(
+            id_usuario=None,
+            accion='carga_masiva_calificaciones',
+            entidad_afectada='matriculas',
+            id_entidad=course_id,
+            detalles=f"Carga masiva: {successful} exitosas, {failed} fallidas"
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Carga masiva completada',
+            'successful': successful,
+            'failed': failed,
+            'errors': errors if errors else None
+        }), 200 if failed == 0 else 207  # 207 = Multi-Status
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Manejo de errores
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'success': False, 'error': 'Endpoint no encontrado'}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({'success': False, 'error': 'Error interno del servidor'}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5005)
