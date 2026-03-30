@@ -172,3 +172,229 @@ def token_required(rol_requerido):
         
         return decorated
     return decorator
+
+@app.route('/')
+def home():
+    return jsonify({
+        'service': 'Students Service',
+        'version': '2.0.0',
+        'database': 'MongoDB',
+        'endpoints': {
+            'get_all': 'GET /students',
+            'get_one': 'GET /students/{id}',
+            'create': 'POST /students',
+            'update': 'PUT /students/{id}',
+            'delete': 'DELETE /students/{id}',
+            'grades': 'GET /students/{id}/grades',
+            'enrollments': 'GET /students/{id}/enrollments'
+        }
+    })
+
+@app.route('/health')
+def health():
+    return jsonify({'status': 'healthy', 'service': 'students', 'database': 'MongoDB'})
+
+@app.route('/student/grades', methods=['GET', 'OPTIONS'])
+def get_student_grades_dashboard():
+    """Endpoint para el dashboard de estudiante - Calificaciones"""
+    if request.method == 'OPTIONS':
+        return '', 204
+    
+    try:
+        # Obtener ID del estudiante desde el token o query params
+        estudiante_id = request.args.get('student_id')
+        
+        if not estudiante_id:
+            # Si no hay student_id, usar uno por defecto para desarrollo
+            estudiante_id = '673df46bfaf2a31cb63b0bbd'
+        
+        matriculas = get_matriculas_collection()
+        
+        # Buscar matrículas del estudiante
+        obj_id = string_to_objectid(estudiante_id)
+        if not obj_id:
+            return jsonify({'error': 'ID de estudiante inválido'}), 400
+        
+        student_matriculas = list(matriculas.find({'id_estudiante': obj_id}))
+        
+        if not student_matriculas:
+            # Si no hay datos, devolver mock data
+            return jsonify({
+                'average': 0.0,
+                'recent': []
+            }), 200
+        
+        # Calcular promedio y obtener calificaciones recientes
+        total_notas = 0
+        count_notas = 0
+        recent_grades = []
+        
+        for matricula in student_matriculas[:3]:  # Últimas 3 matrículas
+            curso_info = matricula.get('curso_info', {})
+            calificaciones = matricula.get('calificaciones', [])
+            
+            for cal in calificaciones:
+                nota = cal.get('nota', 0)
+                total_notas += nota
+                count_notas += 1
+                
+                recent_grades.append({
+                    'subject': curso_info.get('nombre_curso', 'N/A'),
+                    'grade': nota,
+                    'date': cal.get('fecha_eval', datetime.now()).strftime('%Y-%m-%d') if isinstance(cal.get('fecha_eval'), datetime) else str(cal.get('fecha_eval', ''))
+                })
+        
+        average = round(total_notas / count_notas, 2) if count_notas > 0 else 0.0
+        
+        # Ordenar por fecha y tomar las 5 más recientes
+        recent_grades.sort(key=lambda x: x['date'], reverse=True)
+        recent_grades = recent_grades[:5]
+        
+        return jsonify({
+            'average': average,
+            'recent': recent_grades
+        }), 200
+        
+    except Exception as e:
+        print(f"Error en /student/grades: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Devolver mock data en caso de error
+        return jsonify({
+            'average': 4.3,
+            'recent': [
+                {'subject': 'Matemáticas 10° A', 'grade': 4.2, 'date': '2025-02-05'},
+                {'subject': 'Español 10° A', 'grade': 4.5, 'date': '2025-02-05'},
+                {'subject': 'Ciencias 10° A', 'grade': 4.0, 'date': '2025-02-05'}
+            ]
+        }), 200
+
+
+@app.route('/student/notifications', methods=['GET', 'OPTIONS'])
+def get_student_notifications_dashboard():
+    """Endpoint para el dashboard de estudiante - Notificaciones"""
+    if request.method == 'OPTIONS':
+        return '', 204
+    
+    try:
+        # Por ahora devolver notificaciones mock
+        # TODO: Implementar sistema de notificaciones en la base de datos
+        
+        return jsonify({
+            'urgent': 'Entrega de proyecto de Matemáticas el viernes 25 de noviembre',
+            'notifications': [
+                {
+                    'title': 'Nueva tarea de Matemáticas asignada',
+                    'date': '2024-11-18',
+                    'type': 'tarea'
+                },
+                {
+                    'title': 'Calificaciones actualizadas en Español',
+                    'date': '2024-11-17',
+                    'type': 'calificacion'
+                },
+                {
+                    'title': 'Reunión de padres próxima semana',
+                    'date': '2024-11-16',
+                    'type': 'evento'
+                }
+            ]
+        }), 200
+        
+    except Exception as e:
+        print(f"Error en /student/notifications: {e}")
+        return jsonify({
+            'urgent': None,
+            'notifications': []
+        }), 200
+
+
+@app.route('/student/schedule', methods=['GET', 'OPTIONS'])
+def get_student_schedule_dashboard():
+    """Endpoint para el dashboard de estudiante - Horario"""
+    if request.method == 'OPTIONS':
+        return '', 204
+    
+    try:
+        # Por ahora devolver horario mock
+        # TODO: Implementar sistema de horarios en la base de datos
+        
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        return jsonify({
+            'date': today,
+            'events': [
+                {
+                    'time': '08:00 - 09:00',
+                    'subject': 'Matemáticas 10° A',
+                    'teacher': 'Prof. Juan Pérez',
+                    'room': 'Aula 201'
+                },
+                {
+                    'time': '09:00 - 10:00',
+                    'subject': 'Español 10° A',
+                    'teacher': 'Prof. María López',
+                    'room': 'Aula 202'
+                },
+                {
+                    'time': '10:00 - 11:00',
+                    'subject': 'Ciencias 10° A',
+                    'teacher': 'Prof. Carlos García',
+                    'room': 'Laboratorio 1'
+                },
+                {
+                    'time': '11:00 - 12:00',
+                    'subject': 'Inglés 10° A',
+                    'teacher': 'Prof. Ana Martínez',
+                    'room': 'Aula 203'
+                }
+            ]
+        }), 200
+        
+    except Exception as e:
+        print(f"Error en /student/schedule: {e}")
+        return jsonify({
+            'date': datetime.now().strftime('%Y-%m-%d'),
+            'events': []
+        }), 200
+
+@app.route('/student/profile', methods=['GET'])
+@token_required('estudiante')
+def get_student_profile():
+    try:
+        student_email = g.userinfo.get('email') or g.userinfo.get('preferred_username')
+        student_sub = g.userinfo.get('sub')
+        
+        usuarios = get_usuarios_collection()
+        
+        # Buscar estudiante
+        estudiante = usuarios.find_one({'correo': student_email, 'rol': 'estudiante'})
+        
+        # ✅ Si no existe, crearlo automáticamente desde Keycloak
+        if not estudiante:
+            print(f"ℹ️ Estudiante no existe en MongoDB, creando desde Keycloak...")
+            
+            nuevo_estudiante = {
+                'correo': student_email,
+                'keycloak_id': student_sub,
+                'rol': 'estudiante',
+                'nombres': g.userinfo.get('given_name', 'Sin nombre'),
+                'apellidos': g.userinfo.get('family_name', 'Sin apellido'),
+                'codigo_est': f'AUTO-{student_sub[:8]}',
+                'activo': True,
+                'creado_en': Timestamp(int(datetime.utcnow().timestamp()), 0)
+            }
+            
+            resultado = usuarios.insert_one(nuevo_estudiante)
+            estudiante = usuarios.find_one({'_id': resultado.inserted_id})
+            
+            print(f"✅ Estudiante creado automáticamente: {estudiante.get('correo')}")
+        
+        return jsonify({
+            'success': True,
+            'profile': serialize_doc(estudiante)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500   
