@@ -87,6 +87,69 @@ def login():
                     if r in realm_roles:
                         role = r
                         break
+             # 2. Si no se encuentra, buscar en client roles (roles específicos del cliente)
+            if not role and 'resource_access' in decoded:
+                print(f"Resource access keys: {list(decoded['resource_access'].keys())}")
+                
+                # Buscar en el cliente actual
+                if KEYCLOAK_CLIENT_ID in decoded['resource_access']:
+                    client_roles = decoded['resource_access'][KEYCLOAK_CLIENT_ID].get('roles', [])
+                    print(f"Client roles para '{KEYCLOAK_CLIENT_ID}': {client_roles}")
+                    for r in ['administrador', 'docente', 'estudiante']:
+                        if r in client_roles:
+                            role = r
+                            break
+                
+                # Si aún no se encuentra, buscar en todos los clientes
+                if not role:
+                    for client_id, client_data in decoded['resource_access'].items():
+                        client_roles = client_data.get('roles', [])
+                        print(f"Roles en cliente '{client_id}': {client_roles}")
+                        for r in ['administrador', 'docente', 'estudiante']:
+                            if r in client_roles:
+                                role = r
+                                break
+                        if role:
+                            break
+
+            print(f"Rol final detectado: {role}")
+            
+            return jsonify({
+                'access_token': access,
+                'refresh_token': token.get('refresh_token'),
+                'expires_in': token.get('expires_in'),
+                'token_type': 'Bearer',
+                'role': role
+            }), 200
+
+        except Exception as e:
+            print(f"Error en login: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'error': str(e)}), 401
+
+    if username == 'admin' and password == 'admin':
+        mock_token = create_mock_jwt('admin', 'administrador')
+        return jsonify({
+            'access_token': mock_token,
+            'role': 'administrador'
+        }), 200
+
+    if password == 'devpass':
+        role = 'estudiante'
+        if 'teacher' in username or 'profesor' in username:
+            role = 'docente'
+        elif 'admin' in username:
+            role = 'administrador'
+
+        mock_token = create_mock_jwt(username, role)
+        return jsonify({
+            'access_token': mock_token,
+            'role': role
+        }), 200
+
+    return jsonify({'error': 'Credenciales inválidas'}), 401
+
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)%   
+    app.run(host='0.0.0.0', port=5000, debug=True)
