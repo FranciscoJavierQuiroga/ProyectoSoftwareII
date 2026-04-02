@@ -50,6 +50,33 @@ def home():
 def health():
     return jsonify({'status': 'healthy', 'service': 'login'})
 
+
+@app.route('/logout')
+def logout():
+    return jsonify({'message': 'Sesión cerrada'}), 200
+
+
+def create_mock_jwt(username: str, role: str) -> str:
+    """Genera un JWT mock para desarrollo sin Keycloak"""
+    if jwt is None:
+        return f'mock_token_{username}'
+    
+    payload = {
+        'sub': username,
+        'role': role,
+        'username': username,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=8),
+        'iat': datetime.datetime.utcnow(),
+        'iss': 'mock-login-service',
+        'realm_access': {
+            'roles': [role]
+        }
+    }
+    
+    # Firmar con secret del app (en producción usar clave pública/privada)
+    token = jwt.encode(payload, app.secret_key, algorithm='HS256')
+    return token
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json() or {}
