@@ -398,3 +398,691 @@ def get_student_profile():
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500   
+    
+@app.route('/student/courses', methods=['GET'])
+@token_required('estudiante')
+def get_student_courses():
+    """Obtener cursos matriculados del estudiante con calificaciones por periodo"""
+    try:
+        student_email = g.userinfo.get('email') or g.userinfo.get('preferred_username')
+        
+        if not student_email:
+            return jsonify({'success': False, 'error': 'Email no encontrado'}), 400
+        
+        usuarios = get_usuarios_collection()
+        matriculas = get_matriculas_collection()
+        
+        estudiante = usuarios.find_one({
+            'correo': student_email,
+            'rol': 'estudiante',
+            'activo': True
+        })
+        
+        if not estudiante:
+            return jsonify({'success': False, 'error': 'Estudiante no encontrado'}), 404
+        
+        student_matriculas = list(matriculas.find({
+            'id_estudiante': estudiante['_id'],
+            'estado': 'activo'
+        }))
+        
+        cursos = []
+        for matricula in student_matriculas:
+            curso_info = matricula.get('curso_info', {})
+            docente_info = matricula.get('docente_info', {})
+            calificaciones = matricula.get('calificaciones', [])
+            
+            # ✅ Agrupar calificaciones por periodo
+            calificaciones_por_periodo = {
+                '1': [],
+                '2': [],
+                '3': [],
+                '4': []
+            }
+            
+            for cal in calificaciones:
+                periodo_cal = cal.get('periodo', '1')
+                if periodo_cal in calificaciones_por_periodo:
+                    calificaciones_por_periodo[periodo_cal].append(cal)
+            
+            # ✅ Calcular promedio por periodo
+            promedios_por_periodo = {}
+            for periodo, cals in calificaciones_por_periodo.items():
+                if cals:
+                    total = sum(c.get('nota', 0) * c.get('peso', 0) for c in cals)
+                    total_peso = sum(c.get('peso', 0) for c in cals)
+                    promedios_por_periodo[periodo] = round(total / total_peso, 2) if total_peso > 0 else 0
+                else:
+                    promedios_por_periodo[periodo] = 0
+            
+            # Promedio general (todos los periodos)
+            promedios_validos = [p for p in promedios_por_periodo.values() if p > 0]
+            promedio_general = round(sum(promedios_validos) / len(promedios_validos), 2) if promedios_validos else 0
+            
+            cursos.append({
+                'curso_id': str(matricula.get('id_curso')),
+                'nombre_curso': curso_info.get('nombre_curso', 'N/A'),
+                'codigo_curso': curso_info.get('codigo_curso', 'N/A'),
+                'grado': curso_info.get('grado', 'N/A'),
+                'docente': f"{docente_info.get('nombres', '')} {docente_info.get('apellidos', '')}",
+                'promedio_general': promedio_general,
+                'promedios_por_periodo': promedios_por_periodo,  # ✅ NUEVO
+                'calificaciones_por_periodo': {  # ✅ NUEVO
+                    periodo: serialize_doc(cals) 
+                    for periodo, cals in calificaciones_por_periodo.items()
+                }
+            })
+        
+        return jsonify({
+            'success': True,
+            'courses': cursos,
+            'count': len(cursos)
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ Error en get_student_courses: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+        
+@app.route('/student/certificado/<tipo>', methods=['GET'])
+@token_required('estudiante')
+def download_certificado(tipo):
+    """Generar certificado en PDF"""
+    try:
+        # ✅ SOLO obtener email del token
+        student_email = g.userinfo.get('email') or g.userinfo.get('preferred_username')
+        
+        if not student_email:
+            return jsonify({'success': False, 'error': 'Email no encontrado en el token'}), 400
+        
+        usuarios = get_usuarios_collection()
+        
+        # ✅ Buscar SOLO por email
+        estudiante = usuarios.find_one({
+            'correo': student_email,
+            'rol': 'estudiante',
+            'activo': True
+        })
+        
+        if not estudiante:
+            return jsonify({'success': False, 'error': 'Estudiante no encontrado'}), 404
+        
+        # Crear PDF en memoria
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+        width, height = letter
+        
+        # Encabezado
+        p.setFont("Helvetica-Bold", 24)
+        p.drawCentredString(width / 2, height - inch, "CERTIFICADO DE ESTUDIOS")
+        
+        # Información del estudiante
+        p.setFont("Helvetica", 12)
+        y_position = height - 2 * inch
+        
+        p.drawString(inch, y_position, f"Nombre: {estudiante.get('nombres')} {estudiante.get('apellidos')}")
+        y_position -= 0.5 * inch
+        
+        p.drawString(inch, y_position, f"Código: {estudiante.get('codigo_est')}")
+        y_position -= 0.5 * inch
+        
+        p.drawString(inch, y_position, f"Documento: {estudiante.get('tipo_doc')} {estudiante.get('documento')}")
+        y_position -= 0.5 * inch
+        
+        p.drawString(inch, y_position, f"Correo: {estudiante.get('correo')}")
+        y_position -= inch
+        
+        # Texto del certificado
+        p.setFont("Helvetica", 11)
+        texto = f"""
+        La institución educativa certifica que el/la estudiante {estudiante.get('nombres')} 
+        {estudiante.get('apellidos')}, identificado(a) con {estudiante.get('tipo_doc')} 
+        {estudiante.get('documento')}, se encuentra actualmente matriculado(a) en nuestra 
+        institución.
+        """
+        
+        for line in texto.strip().split('\n'):
+            p.drawString(inch, y_position, line.strip())
+            y_position -= 0.3 * inch
+        
+        # Fecha
+        p.drawString(inch, y_position - inch, f"Fecha de expedición: {datetime.now().strftime('%d/%m/%Y')}")
+        
+        # Finalizar PDF
+        p.showPage()
+        p.save()
+        
+        buffer.seek(0)
+        
+        return send_file(
+            buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'certificado_{tipo}_{estudiante.get("codigo_est")}.pdf'
+        )
+        
+    except Exception as e:
+        print(f"❌ Error en download_certificado: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/student/boletin', methods=['GET'])
+@token_required('estudiante')
+def download_boletin():
+    """Generar boletín de calificaciones en PDF filtrado por periodo"""
+    try:
+        # Obtener parámetros
+        periodo = request.args.get('periodo', '1')
+        
+        # Obtener email del token
+        student_email = g.userinfo.get('email') or g.userinfo.get('preferred_username')
+        
+        if not student_email:
+            return jsonify({'success': False, 'error': 'Email no encontrado en el token'}), 400
+        
+        usuarios = get_usuarios_collection()
+        
+        # Buscar estudiante por email
+        estudiante = usuarios.find_one({
+            'correo': student_email,
+            'rol': 'estudiante',
+            'activo': True
+        })
+        
+        if not estudiante:
+            return jsonify({'success': False, 'error': 'Estudiante no encontrado'}), 404
+        
+        matriculas = get_matriculas_collection()
+        
+        # ✅ Obtener TODAS las matrículas del estudiante (sin filtrar por periodo en la matrícula)
+        student_matriculas = list(matriculas.find({
+            'id_estudiante': estudiante['_id'],
+            'estado': 'activo'
+        }))
+        
+        # Crear PDF en memoria
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+        width, height = letter
+        
+        # Encabezado
+        p.setFont("Helvetica-Bold", 20)
+        p.drawCentredString(width / 2, height - inch, "BOLETÍN DE CALIFICACIONES")
+        
+        # Información del estudiante
+        p.setFont("Helvetica", 12)
+        y_position = height - 1.5 * inch
+        
+        p.drawString(inch, y_position, f"Estudiante: {estudiante.get('nombres')} {estudiante.get('apellidos')}")
+        y_position -= 0.4 * inch
+        
+        p.drawString(inch, y_position, f"Código: {estudiante.get('codigo_est')}")
+        y_position -= 0.4 * inch
+        
+        p.drawString(inch, y_position, f"Periodo Académico: {periodo}")
+        y_position -= 0.8 * inch
+        
+        # Tabla de calificaciones
+        p.setFont("Helvetica-Bold", 11)
+        p.drawString(inch, y_position, "Materia")
+        p.drawString(3 * inch, y_position, "Promedio")
+        p.drawString(4 * inch, y_position, "Estado")
+        y_position -= 0.3 * inch
+        
+        p.setFont("Helvetica", 10)
+        total_promedio = 0
+        count = 0
+        
+        # ✅ FILTRAR CALIFICACIONES POR PERIODO
+        for matricula in student_matriculas:
+            curso_info = matricula.get('curso_info', {})
+            calificaciones = matricula.get('calificaciones', [])
+            
+            # ✅ Filtrar solo calificaciones del periodo seleccionado
+            calificaciones_periodo = [
+                cal for cal in calificaciones 
+                if cal.get('periodo') == periodo
+            ]
+            
+            # Solo mostrar cursos con calificaciones en este periodo
+            if calificaciones_periodo:
+                # Calcular promedio ponderado del periodo
+                total = sum(cal.get('nota', 0) * cal.get('peso', 0) for cal in calificaciones_periodo)
+                total_peso = sum(cal.get('peso', 0) for cal in calificaciones_periodo)
+                promedio = round(total / total_peso, 2) if total_peso > 0 else 0
+                
+                estado = 'Aprobado' if promedio >= 3.0 else 'Reprobado'
+                
+                p.drawString(inch, y_position, curso_info.get('nombre_curso', 'N/A'))
+                p.drawString(3 * inch, y_position, f"{promedio:.2f}")
+                p.drawString(4 * inch, y_position, estado)
+                y_position -= 0.3 * inch
+                
+                total_promedio += promedio
+                count += 1
+        
+        # Promedio general del periodo
+        if count > 0:
+            promedio_general = total_promedio / count
+            y_position -= 0.5 * inch
+            p.setFont("Helvetica-Bold", 12)
+            p.drawString(inch, y_position, f"Promedio General del Periodo {periodo}: {promedio_general:.2f}")
+        else:
+            y_position -= 0.5 * inch
+            p.setFont("Helvetica", 11)
+            p.drawString(inch, y_position, "No hay calificaciones registradas para este periodo")
+        
+        # Fecha
+        p.setFont("Helvetica", 10)
+        p.drawString(inch, inch, f"Fecha de expedición: {datetime.now().strftime('%d/%m/%Y')}")
+        
+        # Finalizar PDF
+        p.showPage()
+        p.save()
+        
+        buffer.seek(0)
+        
+        return send_file(
+            buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'boletin_periodo_{periodo}_{estudiante.get("codigo_est")}.pdf'
+        )
+        
+    except Exception as e:
+        print(f"❌ Error en download_boletin: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/students', methods=['GET'])
+def get_students():
+    """Obtener todos los estudiantes"""
+    try:
+        usuarios = get_usuarios_collection()
+        
+        # Filtros opcionales
+        grado = request.args.get('grado') or request.args.get('grade')
+        status = request.args.get('status')
+        
+        # Construir query
+        query = {'rol': 'estudiante'}
+        
+        if status:
+            query['activo'] = (status.lower() == 'active')
+        
+        # Buscar estudiantes
+        estudiantes = list(usuarios.find(query))
+        
+        # Serializar documentos
+        estudiantes_serializados = serialize_doc(estudiantes)
+        
+        return jsonify({
+            'success': True,
+            'data': estudiantes_serializados,
+            'count': len(estudiantes_serializados)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/students/<student_id>', methods=['GET'])
+def get_student(student_id):
+    """Obtener un estudiante por ID"""
+    try:
+        usuarios = get_usuarios_collection()
+        
+        # Convertir ID a ObjectId
+        obj_id = string_to_objectid(student_id)
+        if not obj_id:
+            return jsonify({'success': False, 'error': 'ID inválido'}), 400
+        
+        # Buscar estudiante
+        estudiante = usuarios.find_one({'_id': obj_id, 'rol': 'estudiante'})
+        
+        if not estudiante:
+            return jsonify({'success': False, 'error': 'Estudiante no encontrado'}), 404
+        
+        return jsonify({
+            'success': True,
+            'data': serialize_doc(estudiante)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/students', methods=['POST'])
+def create_student():
+    """Crear un nuevo estudiante"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No se proporcionaron datos'}), 400
+        
+        # Validar campos requeridos
+        required_fields = ['correo', 'nombres', 'apellidos']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({
+                    'success': False,
+                    'error': f'El campo {field} es requerido'
+                }), 400
+
+        usuarios = get_usuarios_collection()
+        
+        # Verificar si el correo ya existe
+        if usuarios.find_one({'correo': data['correo']}):
+            return jsonify({
+                'success': False,
+                'error': 'El correo ya está registrado'
+            }), 400
+        
+        # Crear documento del estudiante
+        nuevo_estudiante = {
+            'correo': data['correo'],
+            'rol': 'estudiante',
+            'nombres': data['nombres'],
+            'apellidos': data['apellidos'],
+            'creado_en': Timestamp(int(datetime.utcnow().timestamp()), 0),
+            'activo': data.get('activo', True)
+        }
+        
+        # Campos opcionales específicos de estudiante
+        if 'codigo_est' in data:
+            nuevo_estudiante['codigo_est'] = data['codigo_est']
+        if 'fecha_nacimiento' in data:
+            nuevo_estudiante['fecha_nacimiento'] = datetime.fromisoformat(data['fecha_nacimiento'].replace('Z', '+00:00'))
+        if 'direccion' in data:
+            nuevo_estudiante['direccion'] = data['direccion']
+        if 'telefono' in data:
+            nuevo_estudiante['telefono'] = data['telefono']
+        if 'nombre_acudiente' in data:
+            nuevo_estudiante['nombre_acudiente'] = data['nombre_acudiente']
+        if 'telefono_acudiente' in data:
+            nuevo_estudiante['telefono_acudiente'] = data['telefono_acudiente']
+        
+        # Insertar en la base de datos
+        resultado = usuarios.insert_one(nuevo_estudiante)
+        
+        # Registrar en auditoría
+        registrar_auditoria(
+            id_usuario=None,
+            accion='crear_estudiante',
+            entidad_afectada='usuarios',
+            id_entidad=str(resultado.inserted_id),
+            detalles=f"Estudiante creado: {data['nombres']} {data['apellidos']}"
+        )
+        
+        # Obtener el documento insertado
+        estudiante_creado = usuarios.find_one({'_id': resultado.inserted_id})
+        
+        return jsonify({
+            'success': True,
+            'message': 'Estudiante creado exitosamente',
+            'data': serialize_doc(estudiante_creado)
+        }), 201
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/students/<student_id>', methods=['PUT'])
+def update_student(student_id):
+    """Actualizar un estudiante"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No se proporcionaron datos'}), 400
+        
+        usuarios = get_usuarios_collection()
+        
+        # Convertir ID a ObjectId
+        obj_id = string_to_objectid(student_id)
+        if not obj_id:
+            return jsonify({'success': False, 'error': 'ID inválido'}), 400
+        
+        # Verificar que el estudiante existe
+        estudiante_existente = usuarios.find_one({'_id': obj_id, 'rol': 'estudiante'})
+        if not estudiante_existente:
+            return jsonify({'success': False, 'error': 'Estudiante no encontrado'}), 404
+        
+        # Preparar datos para actualizar
+        campos_no_modificables = {'_id', 'rol', 'creado_en', 'correo'}
+        datos_actualizacion = {k: v for k, v in data.items() if k not in campos_no_modificables}
+        
+        # Convertir fecha_nacimiento si viene en el request
+        if 'fecha_nacimiento' in datos_actualizacion:
+            datos_actualizacion['fecha_nacimiento'] = datetime.fromisoformat(
+                datos_actualizacion['fecha_nacimiento'].replace('Z', '+00:00')
+            )
+        
+        # Actualizar
+        resultado = usuarios.update_one(
+            {'_id': obj_id},
+            {'$set': datos_actualizacion}
+        )
+        
+        if resultado.modified_count > 0:
+            # Registrar en auditoría
+            registrar_auditoria(
+                id_usuario=None,
+                accion='actualizar_estudiante',
+                entidad_afectada='usuarios',
+                id_entidad=student_id,
+                detalles=f"Campos actualizados: {', '.join(datos_actualizacion.keys())}"
+            )
+            
+            # Obtener documento actualizado
+            estudiante_actualizado = usuarios.find_one({'_id': obj_id})
+            
+            return jsonify({
+                'success': True,
+                'message': 'Estudiante actualizado exitosamente',
+                'data': serialize_doc(estudiante_actualizado)
+            }), 200
+        else:
+            return jsonify({
+                'success': True,
+                'message': 'No se realizaron cambios',
+                'data': serialize_doc(estudiante_existente)
+            }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/students/<student_id>', methods=['DELETE'])
+def delete_student(student_id):
+    """Eliminar (desactivar) un estudiante"""
+    try:
+        usuarios = get_usuarios_collection()
+        
+        # Convertir ID a ObjectId
+        obj_id = string_to_objectid(student_id)
+        if not obj_id:
+            return jsonify({'success': False, 'error': 'ID inválido'}), 400
+        
+        # Verificar que el estudiante existe
+        estudiante = usuarios.find_one({'_id': obj_id, 'rol': 'estudiante'})
+        if not estudiante:
+            return jsonify({'success': False, 'error': 'Estudiante no encontrado'}), 404
+        
+        # Desactivar
+        resultado = usuarios.update_one(
+            {'_id': obj_id},
+            {'$set': {'activo': False}}
+        )
+        
+        # Registrar en auditoría
+        registrar_auditoria(
+            id_usuario=None,
+            accion='desactivar_estudiante',
+            entidad_afectada='usuarios',
+            id_entidad=student_id,
+            detalles=f"Estudiante desactivado: {estudiante['nombres']} {estudiante['apellidos']}"
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Estudiante desactivado exitosamente'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/students/<student_id>/grades', methods=['GET'])
+def get_student_grades(student_id):
+    """Obtener calificaciones de un estudiante"""
+    try:
+        matriculas = get_matriculas_collection()
+        
+        # Convertir ID a ObjectId
+        obj_id = string_to_objectid(student_id)
+        if not obj_id:
+            return jsonify({'success': False, 'error': 'ID inválido'}), 400
+        
+        # Buscar matrículas del estudiante
+        student_matriculas = list(matriculas.find({'id_estudiante': obj_id}))
+        
+        return jsonify({
+            'success': True,
+            'data': serialize_doc(student_matriculas),
+            'count': len(student_matriculas)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/students/<student_id>/enrollments', methods=['GET'])
+def get_student_enrollments(student_id):
+    """Obtener inscripciones de un estudiante"""
+    try:
+        matriculas = get_matriculas_collection()
+        
+        # Convertir ID a ObjectId
+        obj_id = string_to_objectid(student_id)
+        if not obj_id:
+            return jsonify({'success': False, 'error': 'ID inválido'}), 400
+        
+        # Buscar matrículas activas del estudiante
+        enrollments = list(matriculas.find({
+            'id_estudiante': obj_id,
+            'estado': 'activo'
+        }))
+        
+        return jsonify({
+            'success': True,
+            'data': serialize_doc(enrollments),
+            'count': len(enrollments)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Manejo de errores
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'success': False, 'error': 'Endpoint no encontrado'}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({'success': False, 'error': 'Error interno del servidor'}), 500
+
+# ...existing code...
+
+@app.route('/student/certificado/<tipo>', methods=['GET'])
+def generar_certificado_estudiante(tipo):
+    """Generar certificado para el estudiante autenticado"""
+    try:
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header:
+            return jsonify({'error': 'No autenticado'}), 401
+        
+        estudiante_id = request.args.get('student_id', '673df46bfaf2a31cb63b0bbd')
+        
+        usuarios = get_usuarios_collection()
+        estudiante = usuarios.find_one({'_id': string_to_objectid(estudiante_id)})
+        
+        if not estudiante:
+            return jsonify({'error': 'Estudiante no encontrado'}), 404
+        
+        if tipo == 'estudios':
+            data = {
+                'estudiante': {
+                    'nombre': estudiante.get('nombres', 'N/A') + ' ' + estudiante.get('apellidos', ''),
+                    'codigo': estudiante_id,
+                    'documento': estudiante.get('documento', '1234567890')
+                },
+                'institucion': {
+                    'nombre': 'Institución Educativa El Pórtico',
+                    'nit': '900.123.456-7',
+                    'direccion': 'Calle 123 #45-67, Bogotá D.C.'
+                },
+                'grado': '10° A',
+                'periodo': '2024-2025'
+            }
+            
+            pdf_buffer = PDFGenerator.generar_certificado_estudios(data)
+            
+            return send_file(
+                pdf_buffer,
+                mimetype='application/pdf',
+                as_attachment=True,
+                download_name=f'certificado_estudios_{estudiante_id}.pdf'
+            )
+        
+        else:
+            return jsonify({'error': 'Tipo de certificado no válido'}), 400
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/student/boletin', methods=['GET'])
+def generar_boletin_estudiante():
+    """Generar boletín de calificaciones"""
+    try:
+        estudiante_id = request.args.get('student_id', '673df46bfaf2a31cb63b0bbd')
+        periodo = request.args.get('periodo', 'Periodo 1')
+        
+        usuarios = get_usuarios_collection()
+        estudiante = usuarios.find_one({'_id': string_to_objectid(estudiante_id)})
+        
+        if not estudiante:
+            return jsonify({'error': 'Estudiante no encontrado'}), 404
+        
+        data = {
+            'estudiante': {
+                'nombre': estudiante.get('nombres', 'N/A') + ' ' + estudiante.get('apellidos', ''),
+                'codigo': estudiante_id
+            },
+            'periodo': periodo,
+            'materias': [
+                {'nombre': 'Matemáticas', 'nota1': 4.2, 'nota2': 3.8, 'nota3': 4.5, 'promedio': 4.17},
+                {'nombre': 'Español', 'nota1': 4.5, 'nota2': 4.2, 'nota3': 4.8, 'promedio': 4.5},
+                {'nombre': 'Ciencias', 'nota1': 3.5, 'nota2': 4.0, 'nota3': 3.8, 'promedio': 3.77},
+                {'nombre': 'Sociales', 'nota1': 4.0, 'nota2': 4.3, 'nota3': 4.1, 'promedio': 4.13},
+            ],
+            'promedio_general': 4.14
+        }
+        
+        pdf_buffer = PDFGenerator.generar_boletin_notas(data)
+        
+        return send_file(
+            pdf_buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'boletin_{estudiante_id}_{periodo}.pdf'
+        )
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ...existing code...
+
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5001)
