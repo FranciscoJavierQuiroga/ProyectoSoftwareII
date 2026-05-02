@@ -160,3 +160,57 @@ def token_required(rol_requerido):
         
         return decorated
     return decorator
+
+@app.route('/')
+def home():
+    return jsonify({
+        'service': 'Teachers Service',
+        'version': '2.0.0',
+        'database': 'MongoDB',
+        'endpoints': {
+            'get_all': 'GET /teachers',
+            'get_one': 'GET /teachers/{id}',
+            'create': 'POST /teachers',
+            'update': 'PUT /teachers/{id}',
+            'delete': 'DELETE /teachers/{id}',
+            'by_subject': 'GET /teachers?subject={subject}'
+        }
+    })
+
+@app.route('/health')
+def health():
+    return jsonify({'status': 'healthy', 'service': 'teachers', 'database': 'MongoDB'})
+
+@app.route('/teachers', methods=['GET'])
+def get_teachers():
+    """Obtener todos los profesores"""
+    try:
+        usuarios = get_usuarios_collection()
+        
+        # Filtros opcionales
+        especialidad = request.args.get('especialidad') or request.args.get('subject')
+        status = request.args.get('status')
+        
+        # Construir query
+        query = {'rol': 'docente'}
+        
+        if status:
+            query['activo'] = (status.lower() == 'active')
+        
+        if especialidad:
+            query['especialidad'] = {'$regex': especialidad, '$options': 'i'}
+        
+        # Buscar docentes
+        docentes = list(usuarios.find(query))
+        
+        # Serializar documentos
+        docentes_serializados = serialize_doc(docentes)
+        
+        return jsonify({
+            'success': True,
+            'data': docentes_serializados,
+            'count': len(docentes_serializados)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
