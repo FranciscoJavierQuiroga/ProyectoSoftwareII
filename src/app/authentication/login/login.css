@@ -1,0 +1,49 @@
+.page-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 40px 16px;
+  background: linear-gradient(180deg, #f6fbf8 0%, #ffffff 100%);
+}
+
+.brand-card {
+  text-align: center;
+  max-width: 360px;
+  padding: 28px 18px;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.brand-icon { font-size: 34px; }
+.brand-title { margin: 8px 0 4px; font-size: 18px; color: #166947; }
+.brand-sub { margin: 0; font-size: 12px; color: #6b7a73; }
+
+.login-card {
+  width: 360px;
+  padding: 20px;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.login-form label { display: block; margin-bottom: 12px; font-size: 13px; color: #2e423d; }
+.login-form input { width: 100%; padding: 10px 12px; margin-top: 6px; border-radius: 6px; border: 1px solid #d6e6df; box-sizing: border-box; background:#fbfffb; }
+
+.login-form .primary { width: 100%; padding: 12px 14px; margin-top: 12px; border: none; border-radius: 8px; background: #6aa88a; color: white; font-weight: 700; cursor: pointer; }
+.login-form .primary[disabled] { opacity: 0.7; cursor: default; }
+
+.login-links { display:flex; justify-content: space-between; margin-top: 12px; }
+.login-links .link { font-size: 13px; color: #2b6b54; text-decoration: none; }
+
+.message { margin-top: 12px; padding: 10px; border-radius: 6px; font-size: 13px; }
+.message.success { background:#e6f4ea; color:#166947; }
+.message.error { background:#fdecea; color:#9b1a1a; }
+
+@media (max-width: 800px) {
+  .page-wrap { flex-direction: column; gap: 16px; }
+  .brand-card { max-width: 480px; }
+  .login-card { width: 100%; max-width: 480px; }
+}

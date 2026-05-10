@@ -1,0 +1,31 @@
+<div class="page-wrap">
+	<div class="brand-card">
+		<div class="brand-icon">🎓</div>
+		<h1 class="brand-title">Institución Educativa El Pórtico</h1>
+		<p class="brand-sub">Sistema Integrado de Gestión Académica</p>
+	</div>
+
+	<div class="login-card">
+		<form (submit)="login($event)" class="login-form">
+			<label>
+				Usuario
+				<input type="text" [(ngModel)]="username" name="username" placeholder="Usuario" />
+			</label>
+
+			<label>
+				Contraseña
+				<input type="password" [(ngModel)]="password" name="password" placeholder="Contraseña" />
+			</label>
+
+			<button type="submit" class="primary" [disabled]="loading">{{ loading ? 'Ingresando...' : 'Iniciar Sesión' }}</button>
+
+			<div class="login-links">
+				<a class="link" href="#">¿Olvidó su contraseña?</a>
+				<a class="link" href="#">Primer acceso</a>
+			</div>
+		</form>
+
+		<div class="message success" *ngIf="success">{{ success }}</div>
+		<div class="message error" *ngIf="error">{{ error }}</div>
+	</div>
+</div>
