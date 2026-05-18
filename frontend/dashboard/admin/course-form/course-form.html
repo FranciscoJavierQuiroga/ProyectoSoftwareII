@@ -1,0 +1,203 @@
+<div class="form-container">
+  <!-- Header -->
+  <header class="form-header">
+    <button class="btn-back" (click)="goBack()">
+      <span class="material-icons">arrow_back</span>
+    </button>
+    <div>
+      <h1>{{ isEdit ? 'Editar Curso' : 'Nuevo Curso' }}</h1>
+      <p class="subtitle">Complete la información del curso</p>
+    </div>
+  </header>
+
+  <!-- Alerts -->
+  <div *ngIf="error" class="alert alert-error">
+    <span class="material-icons">error</span>
+    {{ error }}
+  </div>
+
+  <div *ngIf="success" class="alert alert-success">
+    <span class="material-icons">check_circle</span>
+    {{ success }}
+  </div>
+
+  <!-- Form -->
+  <form (ngSubmit)="onSubmit()" class="course-form">
+    
+    <!-- Sección: Información Básica -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <span class="material-icons">class</span>
+        Información Básica del Curso
+      </h2>
+
+      <div class="form-group">
+        <label for="nombre_curso">Nombre del Curso *</label>
+        <input 
+          type="text" 
+          id="nombre_curso" 
+          [(ngModel)]="formData.nombre_curso" 
+          name="nombre_curso"
+          placeholder="Ej: Matemáticas Avanzadas"
+          required
+        />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="codigo_curso">Código del Curso *</label>
+          <input 
+            type="text" 
+            id="codigo_curso" 
+            [(ngModel)]="formData.codigo_curso" 
+            name="codigo_curso"
+            placeholder="Ej: MAT101"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="grado">Grado *</label>
+          <select 
+            id="grado" 
+            [(ngModel)]="formData.grado" 
+            name="grado"
+            required
+          >
+            <option value="">Seleccione un grado</option>
+            <option *ngFor="let grado of grados" [value]="grado">
+              {{ grado }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="periodo">Periodo Académico *</label>
+          <select 
+            id="periodo" 
+            [(ngModel)]="formData.periodo" 
+            name="periodo"
+            required
+          >
+            <option value="">Seleccione un periodo</option>
+            <option *ngFor="let periodo of periodos" [value]="periodo">
+              {{ periodo }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="creditos">Créditos Académicos *</label>
+          <input 
+            type="number" 
+            id="creditos" 
+            [(ngModel)]="formData.creditos" 
+            name="creditos"
+            min="1"
+            max="10"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="intensidad_horaria">Intensidad Horaria (horas/semana) *</label>
+        <input 
+          type="number" 
+          id="intensidad_horaria" 
+          [(ngModel)]="formData.intensidad_horaria" 
+          name="intensidad_horaria"
+          min="1"
+          max="10"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="descripcion">Descripción del Curso</label>
+        <textarea 
+          id="descripcion" 
+          [(ngModel)]="formData.descripcion" 
+          name="descripcion"
+          placeholder="Breve descripción del contenido del curso"
+          rows="4"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Sección: Asignación de Docente -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <span class="material-icons">person</span>
+        Asignación de Docente
+      </h2>
+
+      <div class="form-group">
+        <label for="teacher_id">Docente Asignado</label>
+        <select 
+          id="teacher_id" 
+          [(ngModel)]="formData.teacher_id" 
+          name="teacher_id"
+          [disabled]="loadingTeachers"
+        >
+          <option value="">Sin asignar</option>
+          <option *ngFor="let teacher of teachers" [value]="teacher._id">
+            {{ teacher.nombres }} {{ teacher.apellidos }} 
+            <span *ngIf="teacher.codigo_docente">({{ teacher.codigo_docente }})</span>
+          </option>
+        </select>
+        <p class="form-hint" *ngIf="loadingTeachers">
+          Cargando lista de docentes...
+        </p>
+        <p class="form-hint" *ngIf="!loadingTeachers && teachers.length === 0">
+          No hay docentes disponibles
+        </p>
+      </div>
+    </div>
+
+    <!-- Sección: Estado -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <span class="material-icons">toggle_on</span>
+        Estado del Curso
+      </h2>
+
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="formData.activo" 
+            name="activo"
+          />
+          <span>Curso Activo</span>
+        </label>
+        <p class="form-hint">
+          Desmarque esta opción para desactivar temporalmente el curso
+        </p>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-outline" (click)="resetForm()" [disabled]="loading">
+        <span class="material-icons">restart_alt</span>
+        Limpiar
+      </button>
+      
+      <button type="button" class="btn btn-secondary" (click)="goBack()" [disabled]="loading">
+        <span class="material-icons">cancel</span>
+        Cancelar
+      </button>
+
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
+        <span *ngIf="!loading" class="material-icons">
+          {{ isEdit ? 'save' : 'add' }}
+        </span>
+        <span *ngIf="loading" class="spinner-small"></span>
+        {{ isEdit ? 'Actualizar' : 'Crear' }} Curso
+      </button>
+    </div>
+  </form>
+</div>
