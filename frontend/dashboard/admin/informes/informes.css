@@ -1,0 +1,17 @@
+.informes-page { padding:20px; font-family: Arial, sans-serif; max-width:1100px; margin:0 auto }
+.inf-header { display:flex; align-items:center; gap:12px; margin-bottom:12px }
+.back { background:#fff; border:1px solid #ddd; border-radius:6px; padding:6px 10px; cursor:pointer }
+.title { font-size:18px; font-weight:600 }
+.content { display:flex; gap:16px }
+.panel { width:320px; background:#fff; border:1px solid #e8f0ef; padding:12px; border-radius:8px }
+.panel h4 { margin-top:0 }
+select, input { width:100%; padding:8px; margin:6px 0; border:1px solid #e6e6e6; border-radius:6px }
+.formats label { display:block; margin:6px 0 }
+.panel-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:8px }
+.btn-outline { background:#fff; border:1px solid #cfcfcf; padding:8px 12px; border-radius:6px }
+.btn-primary { background:#2e8f4e; color:#fff; padding:8px 12px; border-radius:6px; border:none }
+.preview { flex:1 }
+.preview-box { height:220px; border:1px dashed #dcdcdc; border-radius:6px; background:#fafafa; display:flex; align-items:center; justify-content:center; color:#999 }
+table { width:100%; border-collapse:collapse; margin-top:12px }
+thead th { text-align:left; padding:8px; font-size:12px; color:#666 }
+tbody td { padding:8px; border-top:1px solid #f2f2f2 }

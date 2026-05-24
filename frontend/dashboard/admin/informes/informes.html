@@ -1,0 +1,48 @@
+<div class="informes-page">
+  <header class="inf-header">
+    <button class="back" (click)="goBack()">←</button>
+    <div class="title">Generación de Reportes</div>
+  </header>
+
+  <div class="content">
+    <aside class="panel">
+      <h4>Configuración del Reporte</h4>
+      <label>Tipo de Reporte *</label>
+      <select><option>Seleccionar tipo</option></select>
+
+      <label>Rango de Fecha</label>
+      <input placeholder="Desde dd/mm/aaaa" />
+      <input placeholder="Hasta dd/mm/aaaa" />
+
+      <label>Filtros Organizacionales</label>
+      <select><option>Sede</option></select>
+      <select><option>Grupos</option></select>
+
+      <label>Formatos de Exportación</label>
+      <div class="formats">
+        <label><input type="checkbox" /> PDF</label>
+        <label><input type="checkbox" /> Excel</label>
+        <label><input type="checkbox" /> CSV</label>
+      </div>
+
+      <div class="panel-actions">
+        <button class="btn-outline">Limpiar</button>
+        <button class="btn-primary">Generar Reporte</button>
+      </div>
+    </aside>
+
+    <section class="preview">
+      <div class="preview-box">Vista Previa del Reporte</div>
+      <div class="recent-list">
+        <h5>Reportes Generados Recientemente</h5>
+        <table>
+          <thead><tr><th>Nombre</th><th>Tipo</th><th>Fecha</th><th>Usuario</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody>
+            <tr><td>Calificaciones por Periodo</td><td>Calificación</td><td>15/11/2025</td><td>Admin</td><td>Completado</td><td>—</td></tr>
+            <tr><td>Asistencia Noviembre</td><td>Asistencia</td><td>14/11/2025</td><td>Prof. García</td><td>Completado</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
