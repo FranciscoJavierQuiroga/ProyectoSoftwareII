@@ -239,3 +239,74 @@ def get_teacher(teacher_id):
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/teachers', methods=['POST'])
+def create_teacher():
+    """Crear un nuevo profesor"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No se proporcionaron datos'}), 400
+        
+        # Validar campos requeridos
+        required_fields = ['correo', 'nombres', 'apellidos']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({
+                    'success': False,
+                    'error': f'El campo {field} es requerido'
+                }), 400
+
+        usuarios = get_usuarios_collection()
+        
+        # Verificar si el correo ya existe
+        if usuarios.find_one({'correo': data['correo']}):
+            return jsonify({
+                'success': False,
+                'error': 'El correo ya está registrado'
+            }), 400
+        
+        # Crear documento del docente
+        nuevo_docente = {
+            'correo': data['correo'],
+            'rol': 'docente',
+            'nombres': data['nombres'],
+            'apellidos': data['apellidos'],
+            'creado_en': Timestamp(int(datetime.utcnow().timestamp()), 0),
+            'activo': data.get('activo', True)
+        }
+        
+        # Campos opcionales específicos de docente
+        if 'telefono' in data:
+            nuevo_docente['telefono'] = data['telefono']
+        if 'codigo_empleado' in data:
+            nuevo_docente['codigo_empleado'] = data['codigo_empleado']
+        if 'especialidad' in data:
+            nuevo_docente['especialidad'] = data['especialidad']
+        if 'fecha_ingreso' in data:
+            nuevo_docente['fecha_ingreso'] = datetime.fromisoformat(data['fecha_ingreso'].replace('Z', '+00:00'))
+        
+        # Insertar en la base de datos
+        resultado = usuarios.insert_one(nuevo_docente)
+        
+        # Registrar en auditoría
+        registrar_auditoria(
+            id_usuario=None,
+            accion='crear_docente',
+            entidad_afectada='usuarios',
+            id_entidad=str(resultado.inserted_id),
+            detalles=f"Docente creado: {data['nombres']} {data['apellidos']}"
+        )
+        
+        # Obtener el documento insertado
+        docente_creado = usuarios.find_one({'_id': resultado.inserted_id})
+        
+        return jsonify({
+            'success': True,
+            'message': 'Docente creado exitosamente',
+            'data': serialize_doc(docente_creado)
+        }), 201
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
