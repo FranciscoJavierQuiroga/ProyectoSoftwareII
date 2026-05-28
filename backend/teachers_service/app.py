@@ -214,3 +214,28 @@ def get_teachers():
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/teachers/<teacher_id>', methods=['GET'])
+def get_teacher(teacher_id):
+    """Obtener un profesor por ID"""
+    try:
+        usuarios = get_usuarios_collection()
+        
+        # Convertir ID a ObjectId
+        obj_id = string_to_objectid(teacher_id)
+        if not obj_id:
+            return jsonify({'success': False, 'error': 'ID inválido'}), 400
+        
+        # Buscar docente
+        docente = usuarios.find_one({'_id': obj_id, 'rol': 'docente'})
+        
+        if not docente:
+            return jsonify({'success': False, 'error': 'Docente no encontrado'}), 404
+        
+        return jsonify({
+            'success': True,
+            'data': serialize_doc(docente)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
