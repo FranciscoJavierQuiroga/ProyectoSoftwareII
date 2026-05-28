@@ -375,3 +375,43 @@ def update_teacher(teacher_id):
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/teachers/<teacher_id>', methods=['DELETE'])
+def delete_teacher(teacher_id):
+    """Eliminar (desactivar) un profesor"""
+    try:
+        usuarios = get_usuarios_collection()
+        
+        # Convertir ID a ObjectId
+        obj_id = string_to_objectid(teacher_id)
+        if not obj_id:
+            return jsonify({'success': False, 'error': 'ID inválido'}), 400
+        
+        # Verificar que el docente existe
+        docente = usuarios.find_one({'_id': obj_id, 'rol': 'docente'})
+        if not docente:
+            return jsonify({'success': False, 'error': 'Docente no encontrado'}), 404
+        
+        # Desactivar (no eliminar físicamente)
+        resultado = usuarios.update_one(
+            {'_id': obj_id},
+            {'$set': {'activo': False}}
+        )
+        
+        # Registrar en auditoría
+        registrar_auditoria(
+            id_usuario=None,
+            accion='desactivar_docente',
+            entidad_afectada='usuarios',
+            id_entidad=teacher_id,
+            detalles=f"Docente desactivado: {docente['nombres']} {docente['apellidos']}"
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Docente desactivado exitosamente'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
