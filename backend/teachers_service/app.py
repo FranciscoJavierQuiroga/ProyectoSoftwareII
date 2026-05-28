@@ -310,3 +310,68 @@ def create_teacher():
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/teachers/<teacher_id>', methods=['PUT'])
+def update_teacher(teacher_id):
+    """Actualizar un profesor"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No se proporcionaron datos'}), 400
+        
+        usuarios = get_usuarios_collection()
+        
+        # Convertir ID a ObjectId
+        obj_id = string_to_objectid(teacher_id)
+        if not obj_id:
+            return jsonify({'success': False, 'error': 'ID inválido'}), 400
+        
+        # Verificar que el docente existe
+        docente_existente = usuarios.find_one({'_id': obj_id, 'rol': 'docente'})
+        if not docente_existente:
+            return jsonify({'success': False, 'error': 'Docente no encontrado'}), 404
+        
+        # Preparar datos para actualizar (excluir campos que no se deben modificar)
+        campos_no_modificables = {'_id', 'rol', 'creado_en', 'correo'}
+        datos_actualizacion = {k: v for k, v in data.items() if k not in campos_no_modificables}
+        
+        # Convertir fecha_ingreso si viene en el request
+        if 'fecha_ingreso' in datos_actualizacion:
+            datos_actualizacion['fecha_ingreso'] = datetime.fromisoformat(
+                datos_actualizacion['fecha_ingreso'].replace('Z', '+00:00')
+            )
+        
+        # Actualizar
+        resultado = usuarios.update_one(
+            {'_id': obj_id},
+            {'$set': datos_actualizacion}
+        )
+        
+        if resultado.modified_count > 0:
+            # Registrar en auditoría
+            registrar_auditoria(
+                id_usuario=None,
+                accion='actualizar_docente',
+                entidad_afectada='usuarios',
+                id_entidad=teacher_id,
+                detalles=f"Campos actualizados: {', '.join(datos_actualizacion.keys())}"
+            )
+            
+            # Obtener documento actualizado
+            docente_actualizado = usuarios.find_one({'_id': obj_id})
+            
+            return jsonify({
+                'success': True,
+                'message': 'Docente actualizado exitosamente',
+                'data': serialize_doc(docente_actualizado)
+            }), 200
+        else:
+            return jsonify({
+                'success': True,
+                'message': 'No se realizaron cambios',
+                'data': serialize_doc(docente_existente)
+            }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
