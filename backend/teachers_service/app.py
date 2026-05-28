@@ -415,3 +415,214 @@ def delete_teacher(teacher_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/subjects', methods=['GET'])
+def get_subjects():
+    """Obtener lista de especialidades disponibles"""
+    try:
+        usuarios = get_usuarios_collection()
+        
+        # Obtener especialidades únicas de todos los docentes
+        especialidades = usuarios.distinct('especialidad', {'rol': 'docente', 'especialidad': {'$exists': True, '$ne': None}})
+        
+        return jsonify({
+            'success': True,
+            'subjects': especialidades
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/teacher/groups', methods=['GET', 'OPTIONS'])
+@token_required('docente')
+def teacher_groups():
+    """Obtener grupos asignados al docente autenticado"""
+    if request.method == 'OPTIONS':
+        return '', 204
+    
+    try:
+        teacher_email = g.userinfo.get('email')
+        if not teacher_email:
+            teacher_email = g.userinfo.get('preferred_username')
+        if teacher_email and '@' not in teacher_email:
+            teacher_email = f"{teacher_email}@colegio.edu.co"
+        
+        teacher_sub = g.userinfo.get('sub')
+        
+        print(f"🔍 Buscando docente con email: {teacher_email}")
+        
+        usuarios = get_usuarios_collection()
+        docente = usuarios.find_one({
+            'correo': teacher_email,
+            'rol': 'docente',
+            'activo': True
+        })
+        
+        if not docente:
+            print(f"❌ Docente no encontrado en MongoDB")
+            return jsonify({
+                'success': False,
+                'error': 'Docente no encontrado en la base de datos'
+            }), 404
+        
+        print(f"✅ Docente encontrado: {docente.get('nombres')} {docente.get('apellidos')}")
+        
+        # ✅ CAMBIO: Buscar en asignaciones_docentes en lugar de cursos
+        from database.db_config import get_asignaciones_collection
+        
+        asignaciones = get_asignaciones_collection()
+        matriculas = get_matriculas_collection()
+        
+        # Buscar asignaciones del docente
+        asignaciones_list = list(asignaciones.find({
+            'id_docente': docente['_id'],
+            'activo': True,
+            'anio_lectivo': '2025'
+        }))
+        
+        print(f"📚 Encontradas {len(asignaciones_list)} asignaciones para el docente")
+        
+        # Agrupar por grupo (un grupo puede tener múltiples asignaturas)
+        grupos_dict = {}
+        
+        for asig in asignaciones_list:
+            grupo_id = str(asig['id_grupo'])
+            
+            if grupo_id not in grupos_dict:
+                # Contar estudiantes matriculados ACTIVOS en el grupo
+                num_estudiantes = matriculas.count_documents({
+                    'id_grupo': asig['id_grupo'],
+                    'estado': 'activa'
+                })
+                
+                grupos_dict[grupo_id] = {
+                    '_id': grupo_id,
+                    'name': f"{asig['grupo_info'].get('nombre_grupo', 'Grupo')} - Periodo {asig.get('periodo', '1')}",
+                    'students': num_estudiantes,
+                    'progress_pct': 0,  # TODO: calcular progreso real
+                    'codigo': asig['grupo_info'].get('nombre_grupo', ''),
+                    'periodo': asig.get('periodo', '1'),
+                    'asignaturas': []
+                }
+            
+            # Agregar asignatura al grupo
+            grupos_dict[grupo_id]['asignaturas'].append({
+                'nombre': asig['curso_info'].get('nombre_curso', ''),
+                'codigo': asig['curso_info'].get('codigo_curso', ''),
+                'area': asig['curso_info'].get('area', '')
+            })
+        
+        grupos_formateados = list(grupos_dict.values())
+        
+        print(f"✅ {len(grupos_formateados)} grupos únicos encontrados")
+        for grupo in grupos_formateados:
+            print(f"   - {grupo['name']}: {len(grupo['asignaturas'])} asignaturas, {grupo['students']} estudiantes")
+        
+        return jsonify({
+            'success': True,
+            'groups': grupos_formateados,
+            'count': len(grupos_formateados)
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ Error en /teacher/groups: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    
+@app.route('/teacher/pending-grades', methods=['GET'])
+@token_required('docente')
+def teacher_pending_grades():
+    """Calificaciones pendientes del docente autenticado"""
+    try:
+        # 🔧 Obtener email del token (preferiblemente) o sub como fallback
+        teacher_email = g.userinfo.get('email') or g.userinfo.get('preferred_username')
+        teacher_sub = g.userinfo.get('sub')
+        
+        print(f"🔍 Buscando docente con email: {teacher_email}, sub: {teacher_sub}")
+        
+        usuarios = get_usuarios_collection()
+        
+        # Buscar por email primero
+        docente = usuarios.find_one({
+            'correo': teacher_email,
+            'rol': 'docente',
+            'activo': True
+        })
+        
+        # Si no se encuentra por email, intentar por sub (si está guardado en la BD)
+        if not docente:
+            docente = usuarios.find_one({
+                'keycloak_id': teacher_sub,  # Asumiendo que guardas el UUID aquí
+                'rol': 'docente',
+                'activo': True
+            })
+        
+        if not docente:
+            print(f"❌ Docente no encontrado. Email buscado: {teacher_email}")
+            return jsonify({
+                'success': False,
+                'error': 'Docente no encontrado en la base de datos'
+            }), 404
+        
+        print(f"✅ Docente encontrado: {docente.get('nombres')} {docente.get('apellidos')}")
+     
+        matriculas = get_matriculas_collection()
+        asignaciones = get_asignaciones_collection()
+
+        # Obtener asignaciones del docente (modelo actual)
+        asignaciones_docente = list(asignaciones.find({
+            'id_docente': docente['_id'],
+            'activo': True,
+            'anio_lectivo': '2025'
+        }))
+
+        pending_list = []
+
+        for asig in asignaciones_docente:
+            # Total de estudiantes activos del grupo asignado
+            total_estudiantes = matriculas.count_documents({
+                'id_grupo': asig['id_grupo'],
+                'estado': 'activa'
+            })
+
+            # Estudiantes que ya tienen notas para ESTA asignacion
+            estudiantes_con_notas = matriculas.count_documents({
+                'id_grupo': asig['id_grupo'],
+                'estado': 'activa',
+                'calificaciones': {
+                    '$elemMatch': {
+                        'id_asignacion': asig['_id'],
+                        'notas.0': {'$exists': True}
+                    }
+                }
+            })
+
+            pending_count = max(total_estudiantes - estudiantes_con_notas, 0)
+
+            if pending_count > 0:
+                curso_info = asig.get('curso_info', {})
+                grupo_info = asig.get('grupo_info', {})
+
+                pending_list.append({
+                    'course': f"{curso_info.get('nombre_curso', '')} - {grupo_info.get('nombre_grupo', '')}",
+                    'pending': pending_count,
+                    'total': total_estudiantes,
+                    'course_id': str(asig.get('id_curso', '')),
+                    'assignment_id': str(asig.get('_id', ''))
+                })
+        
+        return jsonify({
+            'success': True,
+            'pending': pending_list,
+            'total_pending': sum(p['pending'] for p in pending_list)
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ Error en /teacher/pending-grades: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
