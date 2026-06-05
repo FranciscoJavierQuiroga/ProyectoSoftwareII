@@ -1,0 +1,436 @@
+.reports-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Inter, Arial, sans-serif;
+}
+
+/* ==========================================
+   HEADER
+========================================== */
+.reports-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e6f0ea;
+}
+
+.btn-back {
+  background: #eef7ef;
+  border: 1px solid #d7e7df;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-back:hover {
+  background: #0b6b3a;
+  color: white;
+  border-color: #0b6b3a;
+  transform: scale(1.05);
+}
+
+.reports-header h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #0b6b3a;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 5px 0 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* ==========================================
+   ALERTS
+========================================== */
+.alert {
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.alert-error {
+  background: #fee;
+  color: #c00;
+  border-left: 4px solid #c00;
+}
+
+.alert .material-icons {
+  font-size: 24px;
+}
+
+/* ==========================================
+   REPORTS GRID
+========================================== */
+.reports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.report-card {
+  background: white;
+  border: 2px solid #e6f0ea;
+  border-radius: 12px;
+  padding: 25px;
+  transition: all 0.3s ease;
+}
+
+.report-card:hover {
+  border-color: #0b6b3a;
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(11, 107, 58, 0.1);
+}
+
+.report-card.active {
+  border-color: #0b6b3a;
+  background: #f8fbf9;
+  box-shadow: 0 4px 12px rgba(11, 107, 58, 0.15);
+}
+
+.report-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #0b6b3a 0%, #2b8b5a 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.report-icon .material-icons {
+  font-size: 32px;
+  color: white;
+}
+
+.report-card h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  color: #0b6b3a;
+  font-weight: 700;
+}
+
+.report-card p {
+  margin: 0 0 20px;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.report-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  flex: 1;
+  justify-content: center;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0b6b3a 0%, #2b8b5a 100%);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #095530 0%, #257a4a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(11, 107, 58, 0.3);
+}
+
+.btn-outline {
+  background: white;
+  color: #0b6b3a;
+  border: 2px solid #0b6b3a;
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: #f8fbf9;
+  transform: translateY(-2px);
+}
+
+.btn .material-icons {
+  font-size: 18px;
+}
+
+.spinner-small {
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ==========================================
+   REPORT RESULTS
+========================================== */
+.report-results {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e6f0ea;
+  margin-bottom: 20px;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e6f0ea;
+}
+
+.results-header h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #0b6b3a;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.results-header .material-icons {
+  font-size: 28px;
+}
+
+.results-content {
+  color: #333;
+}
+
+/* ==========================================
+   DATA VISUALIZATION
+========================================== */
+.data-visualization h3 {
+  margin: 0 0 20px;
+  color: #0b6b3a;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stat-item {
+  background: #f8fbf9;
+  padding: 15px 20px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-left: 4px solid #0b6b3a;
+}
+
+.stat-label {
+  font-weight: 600;
+  color: #333;
+  font-size: 15px;
+}
+
+.stat-value {
+  font-weight: 700;
+  color: #0b6b3a;
+  font-size: 16px;
+}
+
+.stat-meta {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.stats-grid-report {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.stat-card-report {
+  background: linear-gradient(135deg, #f8fbf9 0%, #eef7ef 100%);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid #e6f0ea;
+}
+
+.stat-card-report .material-icons {
+  font-size: 40px;
+  color: #0b6b3a;
+  margin-bottom: 10px;
+}
+
+.stat-card-report h4 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-number {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #0b6b3a;
+}
+
+.additional-stats {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 2px solid #e6f0ea;
+}
+
+.additional-stats h4 {
+  margin: 0 0 15px;
+  color: #0b6b3a;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ==========================================
+   RAW DATA
+========================================== */
+.raw-data {
+  margin-top: 30px;
+  padding: 15px;
+  background: #f8fbf9;
+  border-radius: 8px;
+  border: 1px solid #e6f0ea;
+}
+
+.raw-data summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #0b6b3a;
+  padding: 5px;
+}
+
+.raw-data summary:hover {
+  color: #095530;
+}
+
+.raw-data pre {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  color: #333;
+  font-size: 13px;
+  line-height: 1.6;
+  border: 1px solid #e6f0ea;
+  margin-top: 10px;
+}
+
+/* ==========================================
+   EMPTY STATE
+========================================== */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  border: 2px dashed #d7e7df;
+}
+
+.empty-state .material-icons {
+  font-size: 80px;
+  color: #d7e7df;
+  margin-bottom: 20px;
+}
+
+.empty-state h3 {
+  margin: 0 0 10px;
+  color: #0b6b3a;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.empty-state p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+========================================== */
+@media (max-width: 768px) {
+  .reports-container {
+    padding: 15px;
+  }
+
+  .reports-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .reports-header h1 {
+    font-size: 22px;
+  }
+
+  .reports-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .results-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+
+  .stats-grid-report {
+    grid-template-columns: 1fr;
+  }
+
+  .report-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}

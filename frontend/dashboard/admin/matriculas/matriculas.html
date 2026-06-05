@@ -1,0 +1,55 @@
+<div class="matriculas-page">
+  <header class="mat-header">
+    <button class="back" (click)="goBack()">←</button>
+    <div class="title">Formulario de Matrícula</div>
+  </header>
+
+  <div class="progress-wrap">
+    <div class="label">Progreso del formulario</div>
+    <div class="progress">
+      <div class="bar" style="width:25%"></div>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab active">Personal</button>
+    <button class="tab">Académico</button>
+    <button class="tab">Acudiente</button>
+    <button class="tab">Documentos</button>
+  </nav>
+
+  <section class="form-card">
+    <h4>Datos Personales del Estudiante</h4>
+    <p class="hint">Información básica de identificación</p>
+
+    <div class="row">
+      <input placeholder="Nombres *" />
+      <input placeholder="Apellidos *" />
+    </div>
+
+    <div class="row small">
+      <select><option>Tipo de Documento *</option></select>
+      <input placeholder="Número de Documento *" />
+      <input placeholder="Fecha de Nacimiento *" />
+    </div>
+
+    <div class="row small">
+      <input placeholder="Lugar de Nacimiento" />
+      <select><option>Género *</option></select>
+    </div>
+
+    <div class="row">
+      <input placeholder="Dirección de Residencia *" />
+    </div>
+
+    <div class="row">
+      <input placeholder="Teléfono" />
+      <input placeholder="Correo Electrónico" />
+    </div>
+
+    <div class="actions">
+      <button class="btn-outline">Guardar Borrador</button>
+      <button class="btn-primary">Finalizar Matrícula</button>
+    </div>
+  </section>
+</div>

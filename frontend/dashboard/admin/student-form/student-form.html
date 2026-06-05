@@ -1,0 +1,241 @@
+<div class="form-container">
+  <!-- Header -->
+  <header class="form-header">
+    <button class="btn-back" (click)="goBack()">
+      <span class="material-icons">arrow_back</span>
+    </button>
+    <div>
+      <h1>{{ isEdit ? 'Editar Estudiante' : 'Nuevo Estudiante' }}</h1>
+      <p class="subtitle">Complete la información del estudiante</p>
+    </div>
+  </header>
+
+  <!-- Alerts -->
+  <div *ngIf="error" class="alert alert-error">
+    <span class="material-icons">error</span>
+    {{ error }}
+  </div>
+
+  <div *ngIf="success" class="alert alert-success">
+    <span class="material-icons">check_circle</span>
+    {{ success }}
+  </div>
+
+  <!-- Form -->
+  <form (ngSubmit)="onSubmit()" class="student-form">
+    
+    <!-- Sección: Información Personal -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <span class="material-icons">person</span>
+        Información Personal
+      </h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nombres">Nombres *</label>
+          <input 
+            type="text" 
+            id="nombres" 
+            [(ngModel)]="formData.nombres" 
+            name="nombres"
+            placeholder="Nombres del estudiante"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="apellidos">Apellidos *</label>
+          <input 
+            type="text" 
+            id="apellidos" 
+            [(ngModel)]="formData.apellidos" 
+            name="apellidos"
+            placeholder="Apellidos del estudiante"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="tipo_doc">Tipo de Documento *</label>
+          <select 
+            id="tipo_doc" 
+            [(ngModel)]="formData.tipo_doc" 
+            name="tipo_doc"
+            required
+          >
+            <option *ngFor="let tipo of tiposDocumento" [value]="tipo.value">
+              {{ tipo.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="documento">Número de Documento *</label>
+          <input 
+            type="text" 
+            id="documento" 
+            [(ngModel)]="formData.documento" 
+            name="documento"
+            placeholder="123456789"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="codigo_est">Código Estudiantil *</label>
+          <input 
+            type="text" 
+            id="codigo_est" 
+            [(ngModel)]="formData.codigo_est" 
+            name="codigo_est"
+            placeholder="EST001"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+          <input 
+            type="date" 
+            id="fecha_nacimiento" 
+            [(ngModel)]="formData.fecha_nacimiento" 
+            name="fecha_nacimiento"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección: Información de Contacto -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <span class="material-icons">contact_phone</span>
+        Información de Contacto
+      </h2>
+
+      <div class="form-group">
+        <label for="correo">Correo Electrónico *</label>
+        <input 
+          type="email" 
+          id="correo" 
+          [(ngModel)]="formData.correo" 
+          name="correo"
+          placeholder="estudiante@ejemplo.com"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="telefono">Teléfono</label>
+        <input 
+          type="tel" 
+          id="telefono" 
+          [(ngModel)]="formData.telefono" 
+          name="telefono"
+          placeholder="3001234567"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="direccion">Dirección de Residencia</label>
+        <textarea 
+          id="direccion" 
+          [(ngModel)]="formData.direccion" 
+          name="direccion"
+          placeholder="Calle 123 #45-67"
+          rows="2"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Sección: Información del Acudiente -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <span class="material-icons">supervised_user_circle</span>
+        Información del Acudiente
+      </h2>
+
+      <div class="form-group">
+        <label for="nombre_acudiente">Nombre del Acudiente</label>
+        <input 
+          type="text" 
+          id="nombre_acudiente" 
+          [(ngModel)]="formData.nombre_acudiente" 
+          name="nombre_acudiente"
+          placeholder="Nombre completo del acudiente"
+        />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="telefono_acudiente">Teléfono del Acudiente</label>
+          <input 
+            type="tel" 
+            id="telefono_acudiente" 
+            [(ngModel)]="formData.telefono_acudiente" 
+            name="telefono_acudiente"
+            placeholder="3001234567"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="correo_acudiente">Correo del Acudiente</label>
+          <input 
+            type="email" 
+            id="correo_acudiente" 
+            [(ngModel)]="formData.correo_acudiente" 
+            name="correo_acudiente"
+            placeholder="acudiente@ejemplo.com"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección: Estado -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <span class="material-icons">toggle_on</span>
+        Estado
+      </h2>
+
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="formData.activo" 
+            name="activo"
+          />
+          <span>Estudiante Activo</span>
+        </label>
+        <p class="form-hint">
+          Desmarque esta opción para desactivar temporalmente al estudiante
+        </p>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-outline" (click)="resetForm()" [disabled]="loading">
+        <span class="material-icons">restart_alt</span>
+        Limpiar
+      </button>
+      
+      <button type="button" class="btn btn-secondary" (click)="goBack()" [disabled]="loading">
+        <span class="material-icons">cancel</span>
+        Cancelar
+      </button>
+
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
+        <span *ngIf="!loading" class="material-icons">
+          {{ isEdit ? 'save' : 'add' }}
+        </span>
+        <span *ngIf="loading" class="spinner-small"></span>
+        {{ isEdit ? 'Actualizar' : 'Crear' }} Estudiante
+      </button>
+    </div>
+  </form>
+</div>
