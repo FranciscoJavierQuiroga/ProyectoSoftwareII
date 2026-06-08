@@ -1,0 +1,228 @@
+<a class="back" routerLink="/dashboard/teacher">← Volver al Dashboard</a>
+
+<section class="observations-root">
+  <header class="obs-header">
+    <h2>Observaciones de Estudiantes</h2>
+    <p class="hint">Registra y gestiona el comportamiento y desempeño estudiantil</p>
+  </header>
+
+  <!-- Mensajes de éxito/error -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    ✅ {{ successMessage }}
+  </div>
+
+  <div *ngIf="error" class="alert alert-error">
+    ❌ {{ error }}
+  </div>
+
+  <!-- Resumen -->
+  <div class="summary card">
+    <div class="summary-item">
+      <div class="icon">📊</div>
+      <div class="value">{{ resumen.total }}</div>
+      <div class="label">Total</div>
+    </div>
+    <div class="summary-item success">
+      <div class="icon">😊</div>
+      <div class="value">{{ resumen.positivas }}</div>
+      <div class="label">Positivas</div>
+    </div>
+    <div class="summary-item danger">
+      <div class="icon">⚠️</div>
+      <div class="value">{{ resumen.negativas }}</div>
+      <div class="label">Negativas</div>
+    </div>
+    <div class="summary-item neutral">
+      <div class="icon">ℹ️</div>
+      <div class="value">{{ resumen.neutrales }}</div>
+      <div class="label">Neutrales</div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters card">
+    <input 
+      type="text" 
+      placeholder="Buscar por estudiante o descripción..." 
+      [(ngModel)]="filtros.texto"
+      (ngModelChange)="aplicarFiltroTexto()"
+      class="search-input"
+    />
+    <select [(ngModel)]="filtros.tipo" (ngModelChange)="aplicarFiltros()">
+      <option value="todas">Todas</option>
+      <option value="positiva">Positivas</option>
+      <option value="negativa">Negativas</option>
+      <option value="neutral">Neutrales</option>
+    </select>
+    <select [(ngModel)]="filtros.grupo" (ngModelChange)="aplicarFiltros(); onGrupoChange()">
+      <option value="todos">Todos los Grupos</option>
+      <option *ngFor="let g of grupos" [value]="g._id">{{ g.name }}</option>
+    </select>
+    <select [(ngModel)]="filtros.categoria" (ngModelChange)="aplicarFiltros()">
+      <option value="todas">Todas las Categorías</option>
+      <option value="academica">Académica</option>
+      <option value="disciplinaria">Disciplinaria</option>
+      <option value="convivencia">Convivencia</option>
+      <option value="participacion">Participación</option>
+      <option value="otra">Otra</option>
+    </select>
+    <button class="btn-primary" (click)="nuevaObservacion()">➕ Nueva Observación</button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading && !showModal" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando observaciones...</p>
+  </div>
+
+  <!-- Lista de Observaciones -->
+  <div class="list card" *ngIf="!loading || showModal">
+    <div class="list-title">Registro de Observaciones</div>
+    <div class="list-sub">{{ observacionesFiltradas.length }} observación(es) encontrada(s)</div>
+
+    <div *ngIf="observacionesFiltradas.length === 0 && !loading" class="empty-state">
+      <div class="empty-icon">📋</div>
+      <p>No hay observaciones registradas</p>
+      <button class="btn-primary" (click)="nuevaObservacion()">Crear Primera Observación</button>
+    </div>
+
+    <table class="table" *ngIf="observacionesFiltradas.length > 0">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Estudiante</th>
+          <th>Grupo</th>
+          <th>Tipo</th>
+          <th>Categoría</th>
+          <th>Descripción</th>
+          <th>Seguimiento</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let o of observacionesFiltradas">
+          <td class="fecha">{{ formatFecha(o.fecha) }}</td>
+          <td class="estudiante">
+            <div class="est-name">{{ getEstudianteNombre(o) }}</div>
+            <div class="est-code">{{ o.estudiante_info.codigo_est }}</div>
+          </td>
+          <td class="grupo">{{ getGrupoNombre(o) }}</td>
+          <td>
+            <span 
+              class="chip" 
+              [class.positiva]="o.tipo === 'positiva'"
+              [class.negativa]="o.tipo === 'negativa'"
+              [class.neutral]="o.tipo === 'neutral'">
+              {{ o.tipo }}
+            </span>
+          </td>
+          <td class="categoria">{{ o.categoria }}</td>
+          <td class="descripcion">{{ o.descripcion }}</td>
+          <td class="seguimiento">{{ o.seguimiento || '—' }}</td>
+          <td class="acciones">
+            <button class="btn-icon edit" (click)="editar(o)" title="Editar">✎</button>
+            <button class="btn-icon delete" (click)="eliminar(o)" title="Eliminar">🗑</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal para Nueva/Editar Observación -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editandoId ? 'Editar Observación' : 'Nueva Observación' }}</h3>
+        <button class="close-btn" (click)="cerrarModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Estudiante *</label>
+          <select [(ngModel)]="nuevaObs.student_id" [disabled]="editandoId !== null">
+            <option value="">Seleccionar estudiante</option>
+            <option *ngFor="let est of estudiantes" [value]="est.student_id">
+              {{ est.student_name }} ({{ est.student_code }})
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Grupo *</label>
+          <select [(ngModel)]="nuevaObs.course_id" [disabled]="editandoId !== null">
+            <option value="">Seleccionar grupo</option>
+            <option *ngFor="let g of grupos" [value]="g._id">{{ g.name }}</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo *</label>
+            <select [(ngModel)]="nuevaObs.tipo">
+              <option value="positiva">😊 Positiva</option>
+              <option value="negativa">⚠️ Negativa</option>
+              <option value="neutral">ℹ️ Neutral</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Categoría *</label>
+            <select [(ngModel)]="nuevaObs.categoria">
+              <option value="academica">Académica</option>
+              <option value="disciplinaria">Disciplinaria</option>
+              <option value="convivencia">Convivencia</option>
+              <option value="participacion">Participación</option>
+              <option value="otra">Otra</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="nuevaObs.tipo === 'negativa'">
+          <label>Gravedad</label>
+          <select [(ngModel)]="nuevaObs.gravedad">
+            <option value="leve">Leve</option>
+            <option value="moderada">Moderada</option>
+            <option value="grave">Grave</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Descripción *</label>
+          <textarea 
+            [(ngModel)]="nuevaObs.descripcion" 
+            rows="4"
+            placeholder="Describe la observación detalladamente..."
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Seguimiento / Acciones Tomadas</label>
+          <textarea 
+            [(ngModel)]="nuevaObs.seguimiento" 
+            rows="3"
+            placeholder="Indica las acciones de seguimiento realizadas..."
+          ></textarea>
+        </div>
+
+        <div class="form-group checkbox">
+          <label>
+            <input type="checkbox" [(ngModel)]="nuevaObs.notificado_acudiente" />
+            <span>Notificar al acudiente</span>
+          </label>
+        </div>
+
+        <div *ngIf="error" class="form-error">{{ error }}</div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-outline" (click)="cerrarModal()" [disabled]="loading">
+          Cancelar
+        </button>
+        <button class="btn-primary" (click)="guardarObservacion()" [disabled]="loading">
+          <span *ngIf="!loading">{{ editandoId ? 'Actualizar' : 'Guardar' }}</span>
+          <span *ngIf="loading">Guardando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>

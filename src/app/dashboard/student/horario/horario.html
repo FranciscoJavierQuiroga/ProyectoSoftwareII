@@ -1,0 +1,85 @@
+<a class="back" routerLink="/dashboard/student">← Volver al Dashboard</a>
+
+<section class="horario-root">
+  <header class="header">
+    <h2>Mi Horario Académico</h2>
+    <p class="hint">Consulta tu horario de clases semanal</p>
+  </header>
+
+  <!-- Día Actual -->
+  <div class="current-day card">
+    <div class="day-icon">📅</div>
+    <div class="day-info">
+      <div class="day-label">Hoy es</div>
+      <div class="day-name">{{ getDiaActual() }}</div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando horario...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="alert alert-error">
+    ❌ {{ error }}
+  </div>
+
+  <!-- Tabla de Horario -->
+  <div class="card horario-card" *ngIf="!loading">
+    <div class="table-container">
+      <table class="horario-table">
+        <thead>
+          <tr>
+            <th class="hora-col">Hora</th>
+            <th>Lunes</th>
+            <th>Martes</th>
+            <th>Miércoles</th>
+            <th>Jueves</th>
+            <th>Viernes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let clase of horario" [class.descanso-row]="esDescanso(clase.lunes)">
+            <td class="hora">{{ clase.hora }}</td>
+            <td [class.descanso]="esDescanso(clase.lunes)">
+              <div class="materia">{{ clase.lunes }}</div>
+            </td>
+            <td [class.descanso]="esDescanso(clase.martes)">
+              <div class="materia">{{ clase.martes }}</div>
+            </td>
+            <td [class.descanso]="esDescanso(clase.miercoles)">
+              <div class="materia">{{ clase.miercoles }}</div>
+            </td>
+            <td [class.descanso]="esDescanso(clase.jueves)">
+              <div class="materia">{{ clase.jueves }}</div>
+            </td>
+            <td [class.descanso]="esDescanso(clase.viernes)">
+              <div class="materia">{{ clase.viernes }}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Leyenda -->
+  <div class="card legend">
+    <h3>Información Adicional</h3>
+    <div class="legend-items">
+      <div class="legend-item">
+        <div class="legend-color regular"></div>
+        <span>Clases Regulares</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color descanso"></div>
+        <span>Descanso</span>
+      </div>
+    </div>
+    <p class="note">
+      <strong>Nota:</strong> Este horario puede estar sujeto a cambios. 
+      Consulta con tu coordinador académico ante cualquier duda.
+    </p>
+  </div>
+</section>

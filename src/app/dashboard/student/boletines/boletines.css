@@ -1,0 +1,352 @@
+.back {
+  display: inline-block;
+  margin: 12px 0;
+  color: #2b6a4a;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.back:hover {
+  color: #0b6b3a;
+}
+
+.boletines-root {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: Inter, Arial, sans-serif;
+}
+
+.header h2 {
+  margin: 0;
+  color: #0b6b3a;
+  font-size: 24px;
+}
+
+.header .hint {
+  color: #666;
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+/* Alertas */
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 16px 0;
+  font-weight: 600;
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Cards */
+.card {
+  background: #fff;
+  border: 1px solid #e6f0ea;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Información del Estudiante */
+.student-info {
+  background: linear-gradient(135deg, #f8fbf9 0%, #eef7ef 100%);
+  border-color: #d7e7df;
+}
+
+.info-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-item .label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.info-item .value {
+  font-size: 16px;
+  color: #0b6b3a;
+  font-weight: 700;
+}
+
+/* Sección de Descarga */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h3 {
+  margin: 0;
+  color: #0b6b3a;
+  font-size: 18px;
+}
+
+.section-hint {
+  font-size: 13px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.average-badge {
+  background: #0b6b3a;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+.average-badge strong {
+  font-size: 18px;
+  margin-left: 4px;
+}
+
+.download-controls {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.form-group select {
+  padding: 10px 12px;
+  border: 1px solid #d7e7df;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: #0b6b3a;
+}
+
+.btn-download {
+  background: #0b6b3a;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.btn-download:hover:not(:disabled) {
+  background: #095530;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(11, 107, 58, 0.3);
+}
+
+.btn-download:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Tabla */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.empty-state .empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.table thead {
+  background: #f8fbf9;
+}
+
+.table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #0b6b3a;
+  border-bottom: 2px solid #e6f0ea;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #f0f7f3;
+  font-size: 14px;
+}
+
+.table tr:hover {
+  background: #f8fbf9;
+}
+
+.curso-nombre {
+  font-weight: 600;
+  color: #183c35;
+}
+
+.curso-codigo {
+  font-family: 'Courier New', monospace;
+  color: #666;
+  font-size: 13px;
+}
+
+.docente {
+  color: #555;
+}
+
+.promedio {
+  text-align: center;
+}
+
+.nota {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.nota.aprobado {
+  background: #d4edda;
+  color: #155724;
+}
+
+.nota.reprobado {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.chip.aprobado {
+  background: #d4edda;
+  color: #155724;
+}
+
+.chip.reprobado {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Historial */
+.history-list {
+  display: grid;
+  gap: 12px;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f8fbf9;
+  border-radius: 8px;
+  border: 1px solid #e6f0ea;
+}
+
+.history-title {
+  font-weight: 600;
+  color: #0b6b3a;
+}
+
+.history-meta {
+  font-size: 13px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.btn-secondary {
+  background: #fff;
+  color: #0b6b3a;
+  border: 1px solid #d7e7df;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+}
+
+.btn-secondary:hover {
+  background: #f0f7f3;
+  border-color: #0b6b3a;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .download-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .info-row {
+    grid-template-columns: 1fr;
+  }
+
+  .table {
+    font-size: 12px;
+  }
+
+  .table th,
+  .table td {
+    padding: 8px 6px;
+  }
+}

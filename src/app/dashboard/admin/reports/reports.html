@@ -1,0 +1,165 @@
+<div class="reports-container">
+  <!-- Header -->
+  <header class="reports-header">
+    <button class="btn-back" (click)="goBack()">
+      <span class="material-icons">arrow_back</span>
+    </button>
+    <div>
+      <h1>Panel de Reportes</h1>
+      <p class="subtitle">Generación de reportes académicos y estadísticos</p>
+    </div>
+  </header>
+
+  <!-- Error Alert -->
+  <div *ngIf="error" class="alert alert-error">
+    <span class="material-icons">error</span>
+    {{ error }}
+  </div>
+
+  <!-- Reports Grid -->
+  <div class="reports-grid">
+    <div 
+      *ngFor="let report of reports" 
+      class="report-card"
+      [class.active]="selectedReport === report.id"
+    >
+      <div class="report-icon">
+        <span class="material-icons">{{ report.icon }}</span>
+      </div>
+      <h3>{{ report.title }}</h3>
+      <p>{{ report.description }}</p>
+      
+      <div class="report-actions">
+        <button 
+          class="btn btn-primary" 
+          (click)="generateReport(report)"
+          [disabled]="loading"
+        >
+          <span *ngIf="!loading || selectedReport !== report.id" class="material-icons">assessment</span>
+          <span *ngIf="loading && selectedReport === report.id" class="spinner-small"></span>
+          {{ loading && selectedReport === report.id ? 'Generando...' : 'Generar' }}
+        </button>
+        
+        <button 
+          class="btn btn-outline" 
+          (click)="downloadPDF(report)"
+          [disabled]="loading"
+        >
+          <span class="material-icons">download</span>
+          PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Results -->
+  <div *ngIf="reportData" class="report-results">
+    <div class="results-header">
+      <h2>
+        <span class="material-icons">description</span>
+        {{ getReportTitle() }}
+      </h2>
+      <button class="btn btn-outline" (click)="reportData = null; selectedReport = null">
+        <span class="material-icons">close</span>
+        Cerrar
+      </button>
+    </div>
+
+    <div class="results-content">
+      <!-- Renderizado específico según el tipo de reporte -->
+      <div *ngIf="selectedReport === 'students-by-grade'" class="data-visualization">
+        <h3>Estudiantes por Grado</h3>
+        <div class="stats-list">
+          <div *ngFor="let item of reportData.data" class="stat-item">
+            <div class="stat-label">Grado {{ item.grado }}</div>
+            <div class="stat-value">{{ item.cantidad }} estudiantes</div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="selectedReport === 'performance-by-course'" class="data-visualization">
+        <h3>Desempeño Académico por Curso</h3>
+        <div class="stats-list">
+          <div *ngFor="let item of reportData.data" class="stat-item">
+            <div class="stat-label">{{ item.nombre_curso }}</div>
+            <div class="stat-value">
+              Promedio: {{ item.promedio_curso | number:'1.2-2' }}
+              <span class="stat-meta">({{ item.total_estudiantes }} estudiantes)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="selectedReport === 'teacher-workload'" class="data-visualization">
+        <h3>Carga Académica de Docentes</h3>
+        <div class="stats-list">
+          <div *ngFor="let item of reportData.data" class="stat-item">
+            <div class="stat-label">{{ item.nombre_docente }}</div>
+            <div class="stat-value">
+              {{ item.total_cursos }} cursos | {{ item.total_estudiantes }} estudiantes
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="selectedReport === 'enrollment-history'" class="data-visualization">
+        <h3>Historial de Matrículas</h3>
+        <div class="stats-list">
+          <div *ngFor="let item of reportData.data" class="stat-item">
+            <div class="stat-label">Periodo {{ item.periodo }}</div>
+            <div class="stat-value">{{ item.total_matriculas }} matrículas</div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="selectedReport === 'academic-statistics'" class="data-visualization">
+        <h3>Estadísticas Académicas Completas</h3>
+        <div class="stats-grid-report">
+          <div class="stat-card-report">
+            <span class="material-icons">school</span>
+            <h4>Total Estudiantes</h4>
+            <p class="stat-number">{{ reportData.total_estudiantes }}</p>
+          </div>
+          <div class="stat-card-report">
+            <span class="material-icons">class</span>
+            <h4>Total Cursos</h4>
+            <p class="stat-number">{{ reportData.total_cursos }}</p>
+          </div>
+          <div class="stat-card-report">
+            <span class="material-icons">person</span>
+            <h4>Total Docentes</h4>
+            <p class="stat-number">{{ reportData.total_docentes }}</p>
+          </div>
+          <div class="stat-card-report">
+            <span class="material-icons">library_books</span>
+            <h4>Total Matrículas</h4>
+            <p class="stat-number">{{ reportData.total_matriculas }}</p>
+          </div>
+        </div>
+
+        <div class="additional-stats">
+          <h4>Matrículas por Estado</h4>
+          <div class="stats-list">
+            <div *ngFor="let estado of reportData.matriculas_por_estado" class="stat-item">
+              <div class="stat-label">{{ estado._id || 'Sin estado' }}</div>
+              <div class="stat-value">{{ estado.count }} matrículas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos RAW JSON (para debug) -->
+      <details class="raw-data">
+        <summary>Ver datos en formato JSON</summary>
+        <pre>{{ formatReportData() }}</pre>
+      </details>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!reportData && !loading && !error" class="empty-state">
+    <span class="material-icons">bar_chart</span>
+    <h3>Seleccione un reporte para comenzar</h3>
+    <p>Haga clic en "Generar" en cualquiera de las tarjetas anteriores</p>
+  </div>
+</div>

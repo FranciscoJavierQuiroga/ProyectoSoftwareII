@@ -1,0 +1,61 @@
+<div class="usuarios-page">
+  <header class="usr-header">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <button class="back" (click)="goBack()">←</button>
+      <div>
+        <h2>Gestión de Usuarios y Roles</h2>
+        <p class="subtitle">Administra usuarios, roles y permisos del sistema</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary">Nuevo Usuario</button>
+    </div>
+  </header>
+
+  <div class="cards-row">
+    <div class="stat"> <div class="stat-value">5</div> <div class="stat-label">Total Usuarios</div> </div>
+    <div class="stat"> <div class="stat-value">4</div> <div class="stat-label">Activos</div> </div>
+    <div class="stat"> <div class="stat-value">2</div> <div class="stat-label">Docentes</div> </div>
+    <div class="stat"> <div class="stat-value">1</div> <div class="stat-label">Estudiantes</div> </div>
+    <div class="stat"> <div class="stat-value">1</div> <div class="stat-label">Administrativos</div> </div>
+  </div>
+
+  <section class="filters">
+    <div class="filter-item"><input placeholder="Buscar Usuario" /></div>
+    <div class="filter-item"><select><option>Todos los roles</option></select></div>
+    <div class="filter-item"><select><option>Todos los estados</option></select></div>
+    <div class="filter-item results">Resultados <span class="badge">5</span></div>
+  </section>
+
+  <section class="user-list">
+    <h4>Lista de Usuarios</h4>
+    <p class="hint">Gestiona usuarios del sistema y sus permisos</p>
+    <table>
+      <thead>
+        <tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Último Acceso</th><th>Fecha Creación</th><th>Acciones</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="user-name">Prof. Maria Garcia<br/><small>m.garcia@elp... · @mgarcia</small></div>
+          </td>
+          <td><span class="chip teacher">Docente</span></td>
+          <td><span class="chip active">Activo</span></td>
+          <td>2024-11-18 09:30</td>
+          <td>2024-01-15</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="user-name">Admin Sistema<br/><small>admin@elp... · @admin</small></div>
+          </td>
+          <td><span class="chip admin">Administrativo</span></td>
+          <td><span class="chip active">Activo</span></td>
+          <td>2024-11-18 14:25</td>
+          <td>2024-01-01</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</div>

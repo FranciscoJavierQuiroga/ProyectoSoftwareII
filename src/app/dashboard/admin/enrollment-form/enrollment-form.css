@@ -1,0 +1,13 @@
+/* Reutilizar los mismos estilos del student-form.css */
+@import '../student-form/student-form.css';
+
+/* Estilos adicionales específicos para matrículas */
+.form-hint {
+  font-size: 13px;
+  color: #0b6b3a;
+  background: #f8fbf9;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 8px;
+  font-weight: 600;
+}

@@ -1,0 +1,379 @@
+<div class="config-page">
+  <header class="cfg-header">
+    <button class="back" (click)="goBack()">← Volver al Dashboard</button>
+    <div class="title-area">
+      <h2>Configuración del Sistema</h2>
+      <p class="subtitle">Administra los parámetros generales de la plataforma</p>
+    </div>
+  </header>
+
+  <nav class="cfg-tabs">
+    <button class="tab" [class.active]="activeTab==='institucion'" (click)="setTab('institucion')">Institución</button>
+    <button class="tab" [class.active]="activeTab==='periodos'" (click)="setTab('periodos')">Periodos</button>
+    <button class="tab" [class.active]="activeTab==='evaluacion'" (click)="setTab('evaluacion')">Evaluación</button>
+    <button class="tab" [class.active]="activeTab==='notificaciones'" (click)="setTab('notificaciones')">Notificaciones</button>
+    <button class="tab" [class.active]="activeTab==='seguridad'" (click)="setTab('seguridad')">Seguridad</button>
+    <button class="tab" [class.active]="activeTab==='personalizacion'" (click)="setTab('personalizacion')">Personalización</button>
+    <button class="tab" [class.active]="activeTab==='backup'" (click)="setTab('backup')">Backup</button>
+  </nav>
+
+  <section class="cfg-form">
+    <div class="left">
+      <!-- Institución -->
+      <div *ngIf="activeTab === 'institucion'">
+        <h4>Información Institucional</h4>
+        <p class="hint">Datos generales de la institución educativa</p>
+
+        <label>Nombre de la Institución</label>
+        <input placeholder="Institución Educativa El Pórtico" />
+
+        <label>NIT</label>
+        <input placeholder="900.123.456-7" />
+
+        <label>Dirección</label>
+        <input placeholder="Calle Principal #45-67" />
+
+        <label>Teléfono</label>
+        <input placeholder="(1) 234 5678" />
+
+        <label>Email Institucional</label>
+        <input placeholder="contacto@elportico.edu.co" />
+
+        <label>Sitio Web</label>
+        <input placeholder="www.elportico.edu.co" />
+
+        <label>Lema Institucional</label>
+        <textarea placeholder="Educación con excelencia"></textarea>
+
+        <div class="logo">
+          <div class="logo-preview">Logo Institucional</div>
+          <button class="btn-outline">Cambiar Logo</button>
+        </div>
+
+        <div class="save-row">
+          <button class="btn-primary" (click)="save()">Guardar Cambios</button>
+        </div>
+      </div>
+
+      <!-- Periodos: mostrado en la misma página cuando se selecciona la pestaña Periodos -->
+      <div *ngIf="activeTab === 'periodos'">
+        <h4>Gestión de Periodos</h4>
+        <p class="hint">Cree y administre los periodos académicos</p>
+
+        <label>Nombre del Periodo</label>
+        <input placeholder="Ej. 2026 - Primer Semestre" />
+
+        <label>Fecha Inicio</label>
+        <input type="date" />
+
+        <label>Fecha Fin</label>
+        <input type="date" />
+
+        <label>Estado</label>
+        <select>
+          <option>Activo</option>
+          <option>Inactivo</option>
+        </select>
+
+        <div class="actions-row" style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end">
+          <button class="btn-outline">Limpiar</button>
+          <button class="btn-primary">Agregar Periodo</button>
+        </div>
+
+        <hr style="margin:16px 0" />
+
+        <h5>Periodos Existentes</h5>
+        <table>
+          <thead><tr><th>Periodo</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody>
+            <tr><td>2025 - Primer Semestre</td><td>2025-01-10</td><td>2025-06-30</td><td>Inactivo</td><td>—</td></tr>
+            <tr><td>2025 - Segundo Semestre</td><td>2025-07-10</td><td>2025-12-20</td><td>Activo</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- más secciones para otras pestañas podrían ir aquí (evaluacion, notificaciones, etc.) -->
+      <!-- Evaluación -->
+      <div *ngIf="activeTab === 'evaluacion'">
+        <h4>Parámetros de Evaluación</h4>
+        <p class="hint">Define los criterios de calificación y evaluación</p>
+
+        <div class="eval-grid" style="margin-top:8px">
+          <div class="eval-field">
+            <label>Escala Mínima</label>
+            <input placeholder="1.0" />
+          </div>
+          <div class="eval-field">
+            <label>Escala Máxima</label>
+            <input placeholder="5.0" />
+          </div>
+          <div class="eval-field">
+            <label>Nota Mínima de Aprobación</label>
+            <input placeholder="3.0" />
+          </div>
+          <div class="eval-field">
+            <label>Asistencia Mínima Requerida (%)</label>
+            <input placeholder="80" />
+          </div>
+        </div>
+
+        <div style="margin-top:12px; display:flex; align-items:center; justify-content:space-between">
+          <div style="display:flex; align-items:center; gap:12px">
+            <label style="margin:0">Permitir Calificaciones con Decimales</label>
+            <label class="switch">
+              <input type="checkbox" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="eval-preview">
+          <h5 style="margin:0 0 8px 0">Vista Previa de Escala</h5>
+          <div class="preview-row">
+            <div class="preview-box">Bajo<br/><span class="range">1.0 - 2.9</span></div>
+            <div class="preview-box">Básico<br/><span class="range">3.0 - 3.4</span></div>
+            <div class="preview-box">Alto<br/><span class="range">3.5 - 4.4</span></div>
+            <div class="preview-box">Superior<br/><span class="range">4.5 - 5.0</span></div>
+            <div class="preview-box approved">Aprobación<br/><span class="range">≥ 3.0</span></div>
+          </div>
+        </div>
+
+        <div class="save-row" style="margin-top:12px">
+          <button class="btn-primary" (click)="save()">Guardar Cambios</button>
+        </div>
+      </div>
+
+        <!-- Backup y Restauración -->
+        <div *ngIf="activeTab === 'backup'">
+          <h4>Backup y Restauración</h4>
+          <p class="hint">Administra las copias de seguridad del sistema</p>
+
+          <div class="backup-card">
+            <div class="backup-row">
+              <div>
+                <label>Backup Automático</label>
+                <p class="field-hint">Realiza copias de seguridad automáticas periódicamente</p>
+              </div>
+              <label class="switch"><input type="checkbox" checked /><span class="slider"></span></label>
+            </div>
+
+            <div style="margin-top:10px">
+              <label>Frecuencia de Backup</label>
+              <select>
+                <option>Diario (11:00 PM)</option>
+                <option>Semanal (Domingo 23:00)</option>
+                <option>Mensual (1er día 02:00)</option>
+              </select>
+            </div>
+
+            <div class="last-backup" style="margin-top:12px">
+              <h5>Información del Último Backup</h5>
+              <div class="last-backup-info">
+                <div class="meta">
+                  <div class="meta-row"><span class="muted">Fecha y Hora:</span> <strong>2024-11-17 23:00:00</strong></div>
+                  <div class="meta-row"><span class="muted">Tamaño:</span> <strong>1.2 GB</strong></div>
+                  <div class="meta-row"><span class="muted">Estado:</span> <strong class="status-completed">Completado</strong></div>
+                </div>
+              </div>
+
+              <div class="backup-actions" style="margin-top:12px">
+                <button class="btn-primary">Realizar Backup Ahora</button>
+                <button class="btn-outline">Restaurar Backup</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="backup-history" style="margin-top:14px">
+            <h5>Historial de Backups</h5>
+            <div class="history-item">
+              <div class="hist-left">
+                <div class="hist-date">2024-11-17 23:00</div>
+                <div class="hist-meta">1.2 GB · Automático</div>
+              </div>
+              <div class="hist-actions">
+                <button class="btn-outline">Descargar</button>
+                <button class="btn-outline">Restaurar</button>
+              </div>
+            </div>
+
+            <div class="history-item">
+              <div class="hist-left">
+                <div class="hist-date">2024-11-16 23:00</div>
+                <div class="hist-meta">1.1 GB · Automático</div>
+              </div>
+              <div class="hist-actions">
+                <button class="btn-outline">Descargar</button>
+                <button class="btn-outline">Restaurar</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Personalización -->
+        <div *ngIf="activeTab === 'personalizacion'">
+          <h4>Personalización del Sistema</h4>
+          <p class="hint">Ajusta la apariencia y formato del sistema</p>
+
+          <div class="personal-grid" style="margin-top:8px">
+            <div>
+              <label>Color Primario</label>
+              <input type="color" value="#0F7D4E" />
+              <input class="small-input" placeholder="#0F7D4E" />
+            </div>
+            <div>
+              <label>Color Secundario (Acento)</label>
+              <input type="color" value="#8BCC3F" />
+              <input class="small-input" placeholder="#8BCC3F" />
+            </div>
+          </div>
+
+          <div class="personal-preview">
+            <h5 style="margin:0 0 8px 0">Vista Previa:</h5>
+            <div class="preview-samples">
+              <div class="swatch primary"></div>
+              <div class="swatch secondary"></div>
+            </div>
+          </div>
+
+          <div class="personal-grid" style="margin-top:12px">
+            <div>
+              <label>Formato de Fecha</label>
+              <select>
+                <option>DD/MM/YYYY (18/11/2024)</option>
+                <option>MM/DD/YYYY (11/18/2024)</option>
+                <option>YYYY-MM-DD (2024-11-18)</option>
+              </select>
+            </div>
+            <div>
+              <label>Zona Horaria</label>
+              <select>
+                <option>Colombia (GMT-5)</option>
+                <option>UTC</option>
+                <option>America/New_York (GMT-5)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="save-row" style="margin-top:12px">
+            <button class="btn-primary" (click)="save()">Guardar Cambios</button>
+          </div>
+        </div>
+
+      <!-- Seguridad -->
+      <div *ngIf="activeTab === 'seguridad'">
+        <h4>Configuración de Seguridad</h4>
+        <p class="hint">Administra los parámetros de seguridad del sistema</p>
+
+        <div class="sec-grid" style="margin-top:8px">
+          <div class="sec-field">
+            <label>Tiempo de Sesión (minutos)</label>
+            <input placeholder="30" />
+            <p class="field-hint">Tiempo de inactividad antes de cerrar sesión automáticamente</p>
+          </div>
+          <div class="sec-field">
+            <label>Intentos de Login Permitidos</label>
+            <input placeholder="3" />
+            <p class="field-hint">Número de intentos fallidos antes de bloquear cuenta</p>
+          </div>
+          <div class="sec-field">
+            <label>Longitud Mínima de Contraseña</label>
+            <input placeholder="8" />
+            <p class="field-hint">Caracteres mínimos requeridos para contraseñas</p>
+          </div>
+        </div>
+
+        <div style="margin-top:12px; display:flex; align-items:center; gap:12px">
+          <label style="margin:0">Autenticación de Dos Factores (2FA)</label>
+          <label class="switch">
+            <input type="checkbox" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="sec-note" style="margin-top:12px">
+          <h5>Recomendaciones de Seguridad</h5>
+          <ul>
+            <li>Mantén actualizado el sistema regularmente</li>
+            <li>Usa contraseñas fuertes con mayúsculas, números y símbolos</li>
+            <li>Habilita la autenticación de dos factores para cuentas administrativas</li>
+            <li>Revisa periódicamente los registros de acceso</li>
+          </ul>
+        </div>
+
+        <div class="save-row" style="margin-top:12px">
+          <button class="btn-primary" (click)="save()">Guardar Cambios</button>
+        </div>
+      </div>
+        <!-- Notificaciones -->
+        <div *ngIf="activeTab === 'notificaciones'">
+          <h4>Sistema de Notificaciones</h4>
+          <p class="hint">Configura cómo y cuándo se envían las notificaciones</p>
+
+          <div class="notif-card">
+            <h5>Canales de Notificación</h5>
+
+            <div class="notif-row">
+              <div class="notif-item">
+                <div class="notif-title">Notificaciones por Email</div>
+                <div class="notif-desc">Envía notificaciones al correo electrónico registrado</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="notif-row">
+              <div class="notif-item">
+                <div class="notif-title">Notificaciones por SMS</div>
+                <div class="notif-desc">Envía notificaciones al número de teléfono registrado</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <hr />
+
+            <h5>Tipos de Notificación</h5>
+
+            <div class="notif-row">
+              <div class="notif-item">
+                <div class="notif-title">Calificaciones</div>
+                <div class="notif-desc">Notificar cuando se registren nuevas calificaciones</div>
+              </div>
+              <label class="switch"><input type="checkbox" checked /><span class="slider"></span></label>
+            </div>
+
+            <div class="notif-row">
+              <div class="notif-item">
+                <div class="notif-title">Asistencia</div>
+                <div class="notif-desc">Notificar sobre ausencias o tardanzas</div>
+              </div>
+              <label class="switch"><input type="checkbox" checked /><span class="slider"></span></label>
+            </div>
+
+            <div class="notif-row">
+              <div class="notif-item">
+                <div class="notif-title">Eventos y Actividades</div>
+                <div class="notif-desc">Notificar sobre eventos escolares próximos</div>
+              </div>
+              <label class="switch"><input type="checkbox" checked /><span class="slider"></span></label>
+            </div>
+
+          </div>
+
+          <div class="save-row" style="margin-top:12px">
+            <button class="btn-primary" (click)="save()">Guardar Cambios</button>
+          </div>
+        </div>
+    </div>
+
+    <div class="right">
+      <!-- espacio para opciones adicionales / vista previa -->
+    </div>
+  </section>
+</div>

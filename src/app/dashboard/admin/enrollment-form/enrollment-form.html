@@ -1,0 +1,167 @@
+<div class="form-container">
+  <!-- Header -->
+  <header class="form-header">
+    <button class="btn-back" (click)="goBack()">
+      <span class="material-icons">arrow_back</span>
+    </button>
+    <div>
+      <h1>Nueva Matrícula</h1>
+      <p class="subtitle">Matricular estudiante en un curso</p>
+    </div>
+  </header>
+
+  <!-- Alerts -->
+  <div *ngIf="error" class="alert alert-error">
+    <span class="material-icons">error</span>
+    {{ error }}
+  </div>
+
+  <div *ngIf="success" class="alert alert-success">
+    <span class="material-icons">check_circle</span>
+    {{ success }}
+  </div>
+
+  <!-- Form -->
+  <form (ngSubmit)="onSubmit()" class="enrollment-form">
+    
+    <!-- Sección: Selección de Estudiante -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <span class="material-icons">person</span>
+        Estudiante
+      </h2>
+
+      <div class="form-group">
+        <label for="searchStudent">Buscar Estudiante</label>
+        <input 
+          type="text" 
+          id="searchStudent" 
+          [(ngModel)]="searchStudent" 
+          name="searchStudent"
+          (ngModelChange)="filterStudents()"
+          placeholder="Buscar por nombre, código o documento"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="student_id">Estudiante Seleccionado *</label>
+        <select 
+          id="student_id" 
+          [(ngModel)]="formData.student_id" 
+          name="student_id"
+          required
+        >
+          <option value="">-- Seleccione un estudiante --</option>
+          <option *ngFor="let student of filteredStudents" [value]="student._id">
+            {{ student.codigo_est }} - {{ student.nombres }} {{ student.apellidos }}
+          </option>
+        </select>
+        <p class="form-hint" *ngIf="formData.student_id">
+          Estudiante: {{ getStudentName(formData.student_id) }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Sección: Selección de Curso -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <span class="material-icons">class</span>
+        Curso
+      </h2>
+
+      <div class="form-group">
+        <label for="searchCourse">Buscar Curso</label>
+        <input 
+          type="text" 
+          id="searchCourse" 
+          [(ngModel)]="searchCourse" 
+          name="searchCourse"
+          (ngModelChange)="filterCourses()"
+          placeholder="Buscar por nombre, código o grado"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="course_id">Curso Seleccionado *</label>
+        <select 
+          id="course_id" 
+          [(ngModel)]="formData.course_id" 
+          name="course_id"
+          required
+        >
+          <option value="">-- Seleccione un curso --</option>
+          <option *ngFor="let course of filteredCourses" [value]="course._id">
+            {{ course.codigo_curso }} - {{ course.nombre_curso }} (Grado {{ course.grado }})
+          </option>
+        </select>
+        <p class="form-hint" *ngIf="formData.course_id">
+          Curso: {{ getCourseName(formData.course_id) }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Sección: Detalles de la Matrícula -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <span class="material-icons">event</span>
+        Detalles de Matrícula
+      </h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="periodo">Periodo Académico *</label>
+          <select 
+            id="periodo" 
+            [(ngModel)]="formData.periodo" 
+            name="periodo"
+            required
+          >
+            <option *ngFor="let p of periodos" [value]="p">Periodo {{ p }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="estado">Estado de Matrícula *</label>
+          <select 
+            id="estado" 
+            [(ngModel)]="formData.estado" 
+            name="estado"
+            required
+          >
+            <option *ngFor="let e of estados" [value]="e.value">{{ e.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="observaciones">Observaciones</label>
+        <textarea 
+          id="observaciones" 
+          [(ngModel)]="formData.observaciones" 
+          name="observaciones"
+          placeholder="Notas adicionales sobre la matrícula"
+          rows="3"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-outline" (click)="resetForm()" [disabled]="loading">
+        <span class="material-icons">restart_alt</span>
+        Limpiar
+      </button>
+      
+      <button type="button" class="btn btn-secondary" (click)="goBack()" [disabled]="loading">
+        <span class="material-icons">cancel</span>
+        Cancelar
+      </button>
+
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
+        <span *ngIf="!loading" class="material-icons">add</span>
+        <span *ngIf="loading" class="spinner-small"></span>
+        Crear Matrícula
+      </button>
+    </div>
+  </form>
+</div>
