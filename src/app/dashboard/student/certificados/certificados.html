@@ -1,0 +1,109 @@
+<a class="back" routerLink="/dashboard/student">← Volver al Dashboard</a>
+
+<section class="certificados-root">
+  <header class="header">
+    <h2>Certificados Académicos</h2>
+    <p class="hint">Descarga tus certificados oficiales en formato PDF</p>
+  </header>
+
+  <!-- Mensajes -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+
+  <div *ngIf="error" class="alert alert-error">
+    ❌ {{ error }}
+  </div>
+
+  <!-- Información del Estudiante -->
+  <div class="card student-info" *ngIf="profile">
+    <div class="profile-header">
+      <div class="profile-avatar">
+        {{ profile.nombres.charAt(0) }}{{ profile.apellidos.charAt(0) }}
+      </div>
+      <div class="profile-details">
+        <h3>{{ profile.nombres }} {{ profile.apellidos }}</h3>
+        <div class="profile-meta">
+          <span class="meta-item">
+            <strong>Código:</strong> {{ profile.codigo_est }}
+          </span>
+          <span class="meta-item">
+            <strong>Documento:</strong> {{ profile.tipo_doc }} {{ profile.documento }}
+          </span>
+          <span class="meta-item">
+            <strong>Grado:</strong> {{ profile.grado || 'N/A' }}°
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instrucciones -->
+  <div class="card instructions">
+    <h3>ℹ️ Instrucciones de Descarga</h3>
+    <ol>
+      <li>Selecciona el tipo de certificado que necesitas</li>
+      <li>Haz clic en el botón "Descargar PDF"</li>
+      <li>El certificado se generará automáticamente</li>
+      <li>Guarda el archivo en tu dispositivo</li>
+    </ol>
+    <p class="note">
+      <strong>Importante:</strong> Los certificados descargados tienen validez oficial 
+      y pueden ser utilizados para trámites académicos y administrativos.
+    </p>
+  </div>
+
+  <!-- Grid de Certificados -->
+  <div class="certificados-grid">
+    <div class="certificado-card card" *ngFor="let cert of certificados">
+      <div class="certificado-header">
+        <div class="certificado-icon">{{ cert.icon }}</div>
+        <div class="certificado-badge" *ngIf="cert.disponible">Disponible</div>
+        <div class="certificado-badge unavailable" *ngIf="!cert.disponible">No Disponible</div>
+      </div>
+
+      <div class="certificado-body">
+        <h3 class="certificado-title">{{ cert.nombre }}</h3>
+        <p class="certificado-description">{{ cert.descripcion }}</p>
+      </div>
+
+      <div class="certificado-footer">
+        <button 
+          class="btn-download" 
+          [disabled]="!cert.disponible || isLoading(cert.id)"
+          (click)="descargarCertificado(cert.id)">
+          <span *ngIf="!isLoading(cert.id)">📥 Descargar PDF</span>
+          <span *ngIf="isLoading(cert.id)">⏳ Generando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Información Adicional -->
+  <div class="card info-adicional">
+    <h3>📌 Información Adicional</h3>
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="info-icon">🕒</div>
+        <div class="info-content">
+          <strong>Tiempo de Generación</strong>
+          <p>Los certificados se generan instantáneamente al hacer clic en descargar</p>
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-icon">🔒</div>
+        <div class="info-content">
+          <strong>Seguridad</strong>
+          <p>Todos los certificados incluyen firma digital y código de verificación</p>
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-icon">📧</div>
+        <div class="info-content">
+          <strong>¿Necesitas Ayuda?</strong>
+          <p>Contacta a secretaría académica: secretaria@colegio.edu</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

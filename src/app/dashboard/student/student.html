@@ -1,0 +1,102 @@
+<div class="student-dashboard">
+  <!-- ✅ HEADER ACTUALIZADO -->
+  <header class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1>Dashboard del Estudiante</h1>
+        <p class="hint">Bienvenido {{ profile?.nombres }} {{ profile?.apellidos }}</p>
+      </div>
+      <button class="btn-logout" (click)="logout()">
+        <span class="material-icons">logout</span>
+        Cerrar Sesión
+      </button>
+    </div>
+  </header>
+
+  <!-- ✅ INTERCAMBIO: HORARIO PRIMERO, CALIFICACIONES DESPUÉS -->
+  <div class="top-row">
+    <!-- PANEL 1: HORARIO DE HOY (antes estaba abajo) -->
+    <section class="schedule-card card">
+      <div class="schedule-header">
+        <h3>Horario de Hoy</h3>
+        <div class="date">{{ schedule?.date }}</div>
+      </div>
+
+      <div class="schedule-grid">
+        <div class="event" *ngFor="let e of schedule?.events">
+          <div class="event-time">{{ e.time }}</div>
+          <div class="event-subject">{{ e.subject }}</div>
+          <div class="event-meta">{{ e.teacher }} · {{ e.room }}</div>
+        </div>
+      </div>
+
+      <button class="view-btn" routerLink="/dashboard/student/horario">
+        Ver Horario Completo
+      </button>
+    </section>
+
+    <!-- PANEL 2: CALIFICACIONES Y NOTIFICACIONES (antes estaba arriba) -->
+    <div class="right-column">
+      <!-- Calificaciones -->
+      <section class="grades-card card">
+        <div class="card-header">
+          <div>
+            <div class="title">Mis Calificaciones Recientes</div>
+            <div class="subtitle">Últimas evaluaciones registradas</div>
+          </div>
+          <div class="avg">{{ grades?.average ?? '—' }}</div>
+        </div>
+
+        <div class="progress">
+          <div class="progress-fill" [style.width.%]="getAveragePercentage()"></div>
+        </div>
+
+        <div class="grade-list">
+          <div class="grade-item" *ngFor="let g of grades?.recent">
+            <div class="left">
+              <span class="dot"></span>
+              <div class="subject">{{ g.subject }}</div>
+              <div class="meta">{{ g.date }}</div>
+            </div>
+            <div class="score">{{ g.grade }}</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Notificaciones -->
+      <aside class="notifications-card card">
+        <div class="title">Notificaciones</div>
+
+        <div *ngIf="notifications?.urgent" class="alert">{{ notifications.urgent }}</div>
+
+        <div class="notes">
+          <div class="note" *ngFor="let n of notifications?.notifications">
+            <div class="note-title">{{ n.title }}</div>
+            <div class="note-type">{{ n.date }}</div>
+          </div>
+        </div>
+
+        <button class="view-btn" routerLink="/dashboard/student/boletines">Ver Boletines</button>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ✅ ACCIONES RÁPIDAS -->
+  <div class="quick-actions">
+    <a class="action" routerLink="/dashboard/student/boletines"> 
+      <div class="icon">📄</div>
+      <div class="label">Boletines</div>
+    </a>
+    <a class="action" routerLink="/dashboard/student/horario">
+      <div class="icon">📅</div>
+      <div class="label">Horarios</div>
+    </a>
+    <a class="action" routerLink="/dashboard/student/certificados">
+      <div class="icon">📜</div>
+      <div class="label">Certificados</div>
+    </a>
+  </div>
+
+  <div *ngIf="loading" class="loading">Cargando datos...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+</div>

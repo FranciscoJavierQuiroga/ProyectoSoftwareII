@@ -1,0 +1,40 @@
+<div class="dashboard">
+  <div *ngIf="loading">Cargando dashboard...</div>
+
+  <div *ngIf="!loading && error" class="error">
+    <h3>Error</h3>
+    <p>{{ error }}</p>
+    <details *ngIf="details">
+      <summary>Detalles</summary>
+      <pre>{{ details | json }}</pre>
+    </details>
+  </div>
+
+  <div *ngIf="!loading && !error" class="welcome">
+    <h2>{{ message || ('Bienvenido' + (role ? (' ' + role) : '')) }}</h2>
+    <p><strong>Rol:</strong> {{ role || 'desconocido' }}</p>
+    <p><strong>Usuario:</strong> {{ user || 'desconocido' }}</p>
+    <p><strong>Hora:</strong> {{ time || '' }}</p>
+  </div>
+
+</div>
+<div class="dashboard">
+  <div *ngIf="loading">Cargando dashboard...</div>
+
+  <div *ngIf="!loading && error" class="error">
+    <h3>Error</h3>
+    <p>{{ error }}</p>
+    <details *ngIf="details">
+      <summary>Detalles</summary>
+      <pre>{{ details | json }}</pre>
+    </details>
+  </div>
+
+  <div *ngIf="!loading && !error" class="welcome">
+    <h2>{{ message || ('Bienvenido' + (role ? (' ' + role) : '')) }}</h2>
+    <p><strong>Rol:</strong> {{ role || 'desconocido' }}</p>
+    <p><strong>Usuario:</strong> {{ user || 'desconocido' }}</p>
+    <p><strong>Hora:</strong> {{ time || '' }}</p>
+  </div>
+
+</div>

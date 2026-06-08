@@ -1,0 +1,128 @@
+<a class="back" routerLink="/dashboard/student">← Volver al Dashboard</a>
+
+<section class="boletines-root">
+  <header class="header">
+    <h2>Boletines de Calificaciones</h2>
+    <p class="hint">Descarga tus boletines académicos por periodo</p>
+  </header>
+
+  <!-- Mensajes -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+
+  <div *ngIf="error" class="alert alert-error">
+    ❌ {{ error }}
+  </div>
+
+  <!-- Información del Estudiante -->
+  <div class="card student-info" *ngIf="profile">
+    <div class="info-row">
+      <div class="info-item">
+        <span class="label">Estudiante:</span>
+        <span class="value">{{ profile.nombres }} {{ profile.apellidos }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Código:</span>
+        <span class="value">{{ profile.codigo_est }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Grado:</span>
+        <span class="value">{{ profile.grado || 'N/A' }}°</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Selector de Periodo y Descarga -->
+  <div class="card download-section">
+    <div class="section-header">
+      <h3>Generar Boletín</h3>
+      <p class="section-hint">Selecciona el periodo académico</p>
+    </div>
+
+    <div class="download-controls">
+      <div class="form-group">
+        <label for="periodo">Periodo Académico</label>
+        <select id="periodo" [(ngModel)]="periodoSeleccionado">
+          <option *ngFor="let p of periodos" [value]="p">Periodo {{ p }}</option>
+        </select>
+      </div>
+
+      <button 
+        class="btn-download" 
+        (click)="downloadBoletin()" 
+        [disabled]="loading">
+        <span *ngIf="!loading">📄 Descargar Boletín PDF</span>
+        <span *ngIf="loading">⏳ Generando PDF...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Vista Previa de Calificaciones -->
+  <div class="card preview-section">
+    <div class="section-header">
+      <h3>Vista Previa - Periodo {{ periodoSeleccionado }}</h3>
+      <div class="average-badge">
+        Promedio: <strong>{{ getPromedioGeneral() }}</strong>
+      </div>
+    </div>
+
+    <div *ngIf="getCursosDelPeriodo().length === 0" class="empty-state">
+      <div class="empty-icon">📚</div>
+      <p>No hay cursos registrados para este periodo</p>
+    </div>
+
+    <table class="table" *ngIf="getCursosDelPeriodo().length > 0">
+      <thead>
+        <tr>
+          <th>Materia</th>
+          <th>Código</th>
+          <th>Docente</th>
+          <th>Promedio</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let curso of getCursosDelPeriodo()">
+          <td class="curso-nombre">{{ curso.nombre_curso }}</td>
+          <td class="curso-codigo">{{ curso.codigo_curso }}</td>
+          <td class="docente">{{ curso.docente }}</td>
+          <td class="promedio">
+            <span 
+              class="nota" 
+              [class.aprobado]="curso.promedio >= 3.0"
+              [class.reprobado]="curso.promedio < 3.0">
+              {{ curso.promedio }}
+            </span>
+          </td>
+          <td>
+            <span 
+              class="chip"
+              [class.aprobado]="curso.promedio >= 3.0"
+              [class.reprobado]="curso.promedio < 3.0">
+              {{ curso.promedio >= 3.0 ? 'Aprobado' : 'Reprobado' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Historial de Descargas (Opcional - puede ser funcionalidad futura) -->
+  <div class="card history-section">
+    <h3>Boletines Disponibles</h3>
+    <div class="history-list">
+      <div class="history-item" *ngFor="let p of periodos">
+        <div class="history-info">
+          <div class="history-title">Boletín Periodo {{ p }}</div>
+          <div class="history-meta">Año académico 2024</div>
+        </div>
+        <button 
+          class="btn-secondary" 
+          (click)="periodoSeleccionado = p; downloadBoletin()">
+          📥 Descargar
+        </button>
+      </div>
+    </div>
+  </div>
+</section>

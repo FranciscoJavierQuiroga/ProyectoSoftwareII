@@ -1,0 +1,282 @@
+.teacher-root {
+    padding: 20px;
+    font-family: Inter, Arial, sans-serif;
+    color: #05341d
+}
+
+.page-header {
+  background: linear-gradient(135deg, #0b6b3a 0%, #2b8b5a 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 25px 30px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(11, 107, 58, 0.2);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.header-left .hint {
+  margin: 5px 0 0;
+  opacity: 0.9;
+  font-size: 14px;
+}
+
+.page-header h1 {
+    margin: 0;
+    color: white
+}
+
+.page-header .hint {
+    color: white;
+    margin-top: 6px
+}
+
+/* ==========================================
+   BOTÓN LOGOUT
+========================================== */
+.btn-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-logout .material-icons {
+  font-size: 20px;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .btn-logout {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.grid-row {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap
+}
+
+.card {
+    background: #fff;
+    border: 1px solid #e6f0ea;
+    border-radius: 10px;
+    padding: 14px
+}
+
+.groups-card {
+    flex: 1
+}
+
+.card-title {
+    font-weight: 600;
+    color: #0b6b3a;
+    margin-bottom: 10px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    text-transform: none;
+    font-size: 14px;
+    line-height: 1.2
+}
+
+.groups-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px
+}
+
+.group-item {
+    padding: 10px;
+    border-radius: 8px;
+    background: #fbfffb;
+    border: 1px solid #eef7ef
+}
+
+.group-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center
+}
+
+.group-name {
+    font-weight: 600
+}
+
+.group-meta {
+    color: #777;
+    font-size: 13px
+}
+
+.group-actions {
+    margin-top: 8px;
+    text-align: right
+}
+
+.btn-outline {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #dbeee0;
+    background: #fff;
+    color: #0b6b3a;
+    text-decoration: none
+}
+
+.progress-line {
+    height: 10px;
+    background: #eef7ef;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 10px
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0b6b3a, #62b07a)
+}
+
+.progress-label {
+    font-size: 12px;
+    color: #666;
+    margin-top: 6px
+}
+
+.progress-label .pct {
+    float: right;
+    font-weight: 700;
+    color: #0b6b3a
+}
+
+.pending-card {
+    width: 100%;
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-sizing: border-box
+}
+
+.pending-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px
+}
+
+.pending-list li {
+    background: #fff;
+    border: 1px solid #f1f6f3;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center
+}
+
+.btn-primary {
+    display: block;
+    padding: 8px 12px;
+    background: #0b6b3a;
+    color: #fff;
+    border-radius: 8px;
+    text-align: center;
+    text-decoration: none;
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 14px;
+    line-height: 1.2
+}
+
+.btn-primary.full {
+    width: 100%;
+    margin-top: 6px
+}
+
+.actions-grid {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    justify-items: center
+}
+
+.action-tile {
+    background: #fff;
+    border: 1px solid #eef7ef;
+    border-radius: 10px;
+    padding: 18px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+    max-width: 320px;
+    box-sizing: border-box
+}
+
+.action-tile .icon {
+    font-size: 22px
+}
+
+.action-tile .label {
+    font-weight: 600;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word
+}
+
+.action-tile .sub {
+    color: #666;
+    font-size: 13px
+}
+
+.loading {
+    margin-top: 12px;
+    color: #333
+}
+
+.error {
+    color: #b00020;
+    margin-top: 12px
+}

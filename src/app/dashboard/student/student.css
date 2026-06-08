@@ -1,0 +1,432 @@
+.student-dashboard {
+    padding: 22px;
+    font-family: Inter, Arial, sans-serif;
+    color: #18423a;
+}
+
+/* ==========================================
+   HEADER ACTUALIZADO (✅ VERDE CON BOTÓN A LA DERECHA)
+========================================== */
+.page-header {
+  background: linear-gradient(135deg, #0b6b3a 0%, #2b8b5a 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 25px 30px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(11, 107, 58, 0.2);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-left h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+}
+
+.header-left .hint {
+  margin: 5px 0 0;
+  opacity: 0.9;
+  font-size: 14px;
+  color: white;
+}
+
+/* ==========================================
+   BOTÓN LOGOUT
+========================================== */
+.btn-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-logout:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-logout .material-icons {
+  font-size: 20px;
+}
+
+/* ==========================================
+   TARJETAS Y CONTENIDO
+========================================== */
+.top-row {
+  display: grid;
+  grid-template-columns: 1fr 450px; /* Horario más grande, columna derecha fija */
+  gap: 20px;
+  margin-bottom: 18px;
+}
+/* ==========================================
+   PANEL DE HORARIO (AHORA A LA IZQUIERDA)
+========================================== */
+.schedule-card {
+  background: #fff;
+  border: 1px solid #e7efe9;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 4px 14px rgba(21, 37, 32, 0.03);
+}
+
+/* ==========================================
+   COLUMNA DERECHA (CALIFICACIONES + NOTIFICACIONES)
+========================================== */
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.card {
+    background: #fff;
+    border: 1px solid #e7efe9;
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: 0 4px 14px rgba(21, 37, 32, 0.03)
+}
+
+.grades-card {
+    flex: 1
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center
+}
+
+.title {
+    font-weight: 700;
+    font-size: 15px;
+    color: #18423a;
+}
+
+.subtitle {
+    font-size: 12px;
+    color: #6b7a73
+}
+
+.avg {
+    font-size: 28px;
+    color: #3f8f56;
+    font-weight: 700
+}
+
+.progress {
+    height: 10px;
+    background: #eef8ef;
+    border-radius: 999px;
+    margin: 12px 0
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6aa88a, #2e7d32);
+    border-radius: 999px
+}
+
+.grade-list {
+    margin-top: 6px
+}
+
+.grade-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f2f6f3
+}
+
+.grade-item .left {
+    display: flex;
+    align-items: center;
+    gap: 12px
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background: #2e7d32;
+    border-radius: 50%
+}
+
+.subject {
+    font-weight: 600;
+    color: #18423a;
+}
+
+.meta {
+    font-size: 12px;
+    color: #93a39b
+}
+
+.score {
+    background: #eaf7ee;
+    color: #1e6c3d;
+    padding: 6px 10px;
+    border-radius: 12px;
+    font-weight: 700
+}
+
+.notifications-card {
+    width: 340px
+}
+
+.notifications-card .title {
+    font-weight: 700;
+    font-size: 15px
+}
+
+.alert {
+    background: #fdecea;
+    color: #9b1a1a;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 10px 0
+}
+
+.notes {
+    margin-top: 10px
+}
+
+.note {
+    padding: 10px 0;
+    border-bottom: 1px solid #f2f6f3
+}
+
+.note-title {
+    font-weight: 600;
+    color: #18423a;
+}
+
+.note-type {
+    font-size: 12px;
+    color: #8a9b93
+}
+
+.view-btn {
+    margin-top: 14px;
+    background: #0b6b3a;
+    color: #fff;
+    border: none;
+    padding: 10px 12px;
+    border-radius: 8px;
+    width: 100%;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.view-btn:hover {
+    background: #095530;
+    transform: translateY(-2px);
+}
+
+
+.schedule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center
+}
+
+.schedule-header h3 {
+    margin: 0;
+    font-size: 15px;
+    color: #18423a;
+}
+
+.schedule-header .date {
+    font-size: 12px;
+    color: #6b7a73
+}
+
+.schedule-grid {
+    display: grid;
+    grid-template-columns: 1fr;  /* ✅ CAMBIAR DE repeat(3, 1fr) a 1fr */
+    gap: 12px;
+    margin-top: 12px
+}
+
+.event {
+    background: #f8fbf9;  /* ✅ CAMBIAR de #fff */
+    border: 1px solid #eaf2ec;
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 4px solid #0b6b3a;  /* ✅ AGREGAR ESTA LÍNEA */
+    transition: all 0.2s ease;
+}
+
+.event:hover {
+    background: #eef7ef;  /* ✅ CAMBIAR de border-color */
+    transform: translateX(4px);  /* ✅ CAMBIAR de solo box-shadow */
+}
+
+.event-time {
+    font-size: 12px;
+    color: #0b6b3a;  /* ✅ CAMBIAR de #6b7a73 */
+    font-weight: 700;  /* ✅ AGREGAR ESTA LÍNEA */
+    margin-bottom: 4px  /* ✅ CAMBIAR de 8px a 4px */
+}
+
+.event-subject {
+    font-size: 14px;  /* ✅ AGREGAR ESTA LÍNEA */
+    font-weight: 600;  /* ✅ CAMBIAR de 700 */
+    color: #18423a;
+    margin-bottom: 4px;  /* ✅ AGREGAR ESTA LÍNEA */
+}
+
+.event-meta {
+    font-size: 12px;
+    color: #6b7a73
+}
+
+/* ==========================================
+   ACCIONES RÁPIDAS
+========================================== */
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.action {
+    background: #fff;
+    border: 1px solid #e6f0ea;
+    padding: 16px;
+    border-radius: 10px;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(11, 107, 58, 0.1);
+    border-color: #0b6b3a;
+}
+
+.action .icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+    color: #0b6b3a;
+}
+
+.action .label {
+    font-weight: 600;
+    color: #0b6b3a;
+}
+
+/* ==========================================
+   ESTADOS
+========================================== */
+.loading {
+    margin-top: 12px;
+    color: #333;
+    text-align: center;
+    padding: 20px;
+}
+
+.error {
+    color: #b00020;
+    margin-top: 12px;
+    text-align: center;
+    padding: 20px;
+    background: #fdecea;
+    border-radius: 8px;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+@media (max-width: 900px) {
+    .top-row {
+        grid-template-columns: 1fr;  /* ✅ CAMBIAR de flex-direction: column */
+    }
+
+    .right-column {  /* ✅ AGREGAR ESTE BLOQUE */
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .notifications-card {
+        width: 100%;
+    }
+
+    .schedule-grid {
+        grid-template-columns: 1fr;  /* ✅ CAMBIAR de repeat(2, 1fr) */
+    }
+
+    .quick-actions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .header-left {
+        width: 100%;
+    }
+
+    .btn-logout {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .top-row {  /* ✅ AGREGAR ESTA LÍNEA */
+        grid-template-columns: 1fr;
+    }
+
+    .right-column {  /* ✅ AGREGAR ESTE BLOQUE */
+        grid-template-columns: 1fr;
+    }
+
+    .schedule-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-actions {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .student-dashboard {
+        padding: 15px;
+    }
+
+    .page-header {
+        padding: 20px;
+    }
+
+    .header-left h1 {
+        font-size: 24px;
+    }
+}
